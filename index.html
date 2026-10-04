@@ -1,0 +1,1125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Votes to Win: Win Number Calculator for Candidates</title>
+<meta name="description" content="Free win number calculator for candidates and campaign managers. Find out how many votes you need to win, then get a full campaign plan with weekly door goals, a budget, call time and a calendar to Election Day.">
+<link rel="canonical" href="https://jatreat.github.io/votes-to-win/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cellipse cx='16' cy='16' rx='14' ry='9' fill='%23B3122E'/%3E%3C/svg%3E">
+<meta name="theme-color" content="#1B2A4C">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://jatreat.github.io/votes-to-win/">
+<meta property="og:title" content="How many votes do you need to win?">
+<meta property="og:description" content="Free win number calculator for candidates, plus a full campaign plan to reach it.">
+<meta property="og:image" content="https://jatreat.github.io/votes-to-win/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
+</head>
+<body>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one ballot-width column of contest panels with scanner timing marks down the edge; the win number is set at yard-sign scale and is the only loud element. */
+:root{
+  --paper:#ECEFF4;
+  --sheet:#FFFFFF;
+  --ink:#101828;
+  --muted:#566079;
+  --rule:#18223A;
+  --hair:#D3D9E3;
+  --band:#1B2A4C;
+  --band-ink:#FFFFFF;
+  --red:#B3122E;
+  --cta:#B3122E;
+  --cta-ink:#FFFFFF;
+  --mark:#18223A;
+  --tint:#E5EAF2;
+  --shadow:0 12px 32px rgba(16,24,40,.18);
+  --display:"Big Shoulders Display","Arial Narrow","Roboto Condensed","Helvetica Neue",Impact,sans-serif;
+  --body:"Public Sans",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0A0F1A; --sheet:#121A2A; --ink:#E7EBF2; --muted:#9BA6BB; --rule:#7A879F; --hair:#28334A;
+    --band:#263A63; --band-ink:#FFFFFF; --red:#FF5C70; --cta:#D3263F; --cta-ink:#FFFFFF; --mark:#7A879F;
+    --tint:#1A2336; --shadow:0 12px 32px rgba(0,0,0,.5); color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0A0F1A; --sheet:#121A2A; --ink:#E7EBF2; --muted:#9BA6BB; --rule:#7A879F; --hair:#28334A;
+  --band:#263A63; --band-ink:#FFFFFF; --red:#FF5C70; --cta:#D3263F; --cta-ink:#FFFFFF; --mark:#7A879F;
+  --tint:#1A2336; --shadow:0 12px 32px rgba(0,0,0,.5); color-scheme:dark;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+.wrap{width:100%;max-width:1000px;margin-inline:auto;padding-inline:16px}
+
+/* top bar */
+.top{background:var(--sheet);border-bottom:2px solid var(--rule)}
+.top-in{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px 16px;padding-block:12px}
+.brand{display:inline-flex;align-items:center;gap:10px;font-family:var(--display);font-weight:900;font-size:27px;line-height:1;letter-spacing:.03em;text-transform:uppercase;text-decoration:none}
+.brand-oval{display:inline-block;width:28px;height:17px;border-radius:50%;background:var(--red)}
+.top-note{font-size:12.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+
+.setup{background:var(--tint);border-bottom:1px solid var(--hair)}
+.setup-in{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px;padding-block:10px;font-size:14.5px}
+.setup-in p{margin:0;flex:1 1 300px;min-width:0}
+
+/* hero */
+.hero{padding-block:44px 30px}
+.eyebrow{margin:0 0 12px;font-size:13px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--red)}
+h1{margin:0;font-family:var(--display);font-weight:900;font-size:clamp(46px,9.5vw,92px);line-height:.9;letter-spacing:-.005em;text-transform:uppercase;text-wrap:balance;max-width:13ch}
+.lede{margin:20px 0 0;font-size:clamp(17px,2.2vw,19px);color:var(--muted);max-width:58ch}
+
+/* ballot panels */
+.sheet{position:relative;background:var(--sheet);border:2px solid var(--rule);margin-block:0 32px}
+.sheet::before{content:"";position:absolute;left:8px;top:64px;bottom:16px;width:9px;background:repeating-linear-gradient(to bottom,var(--mark) 0 5px,transparent 5px 26px);pointer-events:none}
+.band{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--band);color:var(--band-ink);padding:11px 16px 11px 34px}
+.band h2{margin:0;font-family:var(--display);font-weight:800;font-size:23px;line-height:1.1;letter-spacing:.045em;text-transform:uppercase}
+.band-tag{flex:none;font-size:11.5px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;border:1.5px solid currentColor;padding:3px 8px;line-height:1.2}
+
+/* calculator */
+.calc{display:grid;gap:28px;padding:22px 18px 26px 34px}
+@media (min-width:820px){.calc{grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:36px}}
+.inputs{display:grid;gap:22px;min-width:0;align-content:start}
+fieldset{border:0;margin:0;padding:0;min-width:0}
+.field{display:block}
+.lbl,legend{display:block;padding:0;margin:0 0 8px;font-weight:700;font-size:15px;line-height:1.35}
+.help{display:block;margin-top:7px;font-size:13.5px;line-height:1.45;color:var(--muted);max-width:52ch}
+.inp{display:flex;align-items:center;gap:8px}
+.inp input{width:100%;max-width:220px;padding:10px 12px;border:2px solid var(--rule);border-radius:0;background:var(--sheet);font-size:18px;font-variant-numeric:tabular-nums}
+.inp.short input{max-width:120px}
+.unit{flex:none;font-weight:600;color:var(--muted)}
+input[type=number]{-moz-appearance:textfield;appearance:textfield}
+input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+
+.opts{display:flex;flex-wrap:wrap;gap:10px 22px}
+.oval{position:relative;display:inline-flex;align-items:center;gap:10px;min-height:34px;cursor:pointer;font-size:15.5px;line-height:1.25}
+.oval input{position:absolute;opacity:0;width:1px;height:1px;margin:0}
+.oval .o{flex:none;width:30px;height:18px;border:2px solid var(--ink);border-radius:50%;transition:background-color .12s ease}
+.oval input:checked + .o{background:var(--ink)}
+.oval input:focus-visible + .o{outline:3px solid var(--red);outline-offset:2px}
+.oval small{display:block;font-size:12.5px;color:var(--muted)}
+
+.seg .opts{display:grid;grid-template-columns:1fr 1fr;gap:0;border:2px solid var(--rule)}
+.seg label{position:relative;display:flex;align-items:center;justify-content:center;text-align:center;padding:10px 8px;font-weight:700;font-size:14.5px;line-height:1.2;cursor:pointer}
+.seg label + label{border-left:2px solid var(--rule)}
+.seg input{position:absolute;opacity:0;width:1px;height:1px;margin:0}
+.seg label.on{background:var(--band);color:var(--band-ink)}
+.seg label:has(input:focus-visible){outline:3px solid var(--red);outline-offset:-3px}
+
+.result{min-width:0;border-top:2px solid var(--rule);padding-top:22px}
+@media (min-width:820px){.result{border-top:0;border-left:2px solid var(--rule);padding:2px 0 4px 30px;position:sticky;top:calc(16px + env(safe-area-inset-top,0px));align-self:start}}
+.r-head{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:34px}
+.r-lbl{margin:0;font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.stamp{flex:none;font-family:var(--display);font-weight:900;font-size:20px;letter-spacing:.16em;text-transform:uppercase;color:var(--red);border:3px double var(--red);padding:1px 8px 0 10px;transform:rotate(-6deg)}
+.win{margin:4px 0 0;font-family:var(--display);font-weight:900;font-size:clamp(88px,25vw,156px);line-height:.84;letter-spacing:-.01em;color:var(--red);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.r-sub{margin:12px 0 0;font-size:16.5px}
+.facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin:18px 0 0;border-block:1px solid var(--hair)}
+.facts > div{min-width:0;padding:10px 10px 10px 0}
+.facts > div + div{padding-left:10px;border-left:1px solid var(--hair)}
+.facts dt{font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;line-height:1.3;color:var(--muted)}
+.facts dd{margin:3px 0 0;font-family:var(--display);font-weight:800;font-size:27px;line-height:1;font-variant-numeric:tabular-nums}
+.warn{margin:12px 0 0;font-size:14px;font-weight:600;color:var(--red)}
+.teaser{margin:18px 0 0;font-size:16.5px}
+.r-actions{margin-top:18px;display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.sample-note{margin:12px 0 0;font-size:13.5px;color:var(--muted)}
+
+.btn-cta{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 22px;border:0;background:var(--cta);color:var(--cta-ink);font-family:var(--display);font-weight:800;font-size:21px;line-height:1.05;letter-spacing:.05em;text-transform:uppercase;text-decoration:none;cursor:pointer;transition:filter .15s ease}
+.btn-cta:hover{filter:brightness(1.1)}
+.btn-cta.full{width:100%}
+.btn-cta.soon{opacity:.55;cursor:default;filter:none}
+.btn-line{display:inline-flex;align-items:center;justify-content:center;padding:9px 14px;border:2px solid var(--rule);background:transparent;font-weight:700;font-size:14.5px;line-height:1.2;cursor:pointer;text-decoration:none}
+.btn-line:hover{background:var(--tint)}
+
+/* plan */
+.plan{padding:22px 18px 28px 34px}
+.plan-head{display:grid;gap:18px;padding-bottom:20px;border-bottom:2px solid var(--rule)}
+.plan-title{margin:0;font-family:var(--display);font-weight:900;font-size:clamp(30px,5vw,42px);line-height:1;text-transform:uppercase;overflow-wrap:anywhere}
+.plan-meta{margin:6px 0 0;font-size:15px;color:var(--muted)}
+.unlock-line{margin:0;font-size:14px;color:var(--muted)}
+.unlock-line strong{color:var(--ink);letter-spacing:.04em;user-select:all}
+.grid-in{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,190px),1fr));gap:16px 18px}
+.grid-in label{display:block;min-width:0}
+.grid-in .lbl{font-size:13.5px;font-weight:600;margin-bottom:6px}
+.grid-in input{width:100%;max-width:none;padding:9px 10px;border:2px solid var(--rule);border-radius:0;background:var(--sheet);font-size:16px;font-variant-numeric:tabular-nums}
+.grid-in .inp input{max-width:none;font-size:16px;padding:9px 10px}
+.assume{border-bottom:1px solid var(--hair)}
+.assume > summary{display:flex;align-items:center;gap:10px;padding:14px 0;font-weight:700;cursor:pointer;list-style:none}
+.assume > summary::-webkit-details-marker{display:none}
+.assume > summary::before{content:"";flex:none;width:22px;height:13px;border:2px solid var(--ink);border-radius:50%}
+.assume[open] > summary::before{background:var(--ink)}
+.assume-body{display:grid;gap:22px;padding:4px 0 22px}
+.assume h4{margin:0 0 10px;font-size:12.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.block{padding-block:24px;border-bottom:1px solid var(--hair)}
+.block:last-child{border-bottom:0}
+.sub{margin:0 0 14px;font-family:var(--display);font-weight:800;font-size:26px;line-height:1.05;letter-spacing:.03em;text-transform:uppercase}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border-top:2px solid var(--rule)}
+@media (min-width:700px){.stats{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.stat{min-width:0;padding:12px 12px 12px 0;border-bottom:1px solid var(--hair)}
+.s-num{display:block;font-family:var(--display);font-weight:900;font-size:38px;line-height:1;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.s-lbl{display:block;margin-top:5px;font-size:13.5px;line-height:1.35;color:var(--muted)}
+.note{margin:14px 0 0;font-size:15px;color:var(--muted);max-width:64ch}
+.note strong{color:var(--ink)}
+.empty{margin:0;padding:28px 0;color:var(--muted)}
+.ledger{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.ledger td{padding:10px 0;border-bottom:1px solid var(--hair);vertical-align:top}
+.ledger td.amt{padding-left:14px;text-align:right;white-space:nowrap;font-weight:700}
+.ledger .item{font-weight:600}
+.ledger .det{display:block;font-size:13.5px;line-height:1.4;color:var(--muted)}
+.ledger tr.total td{border-top:2px solid var(--rule);border-bottom:4px double var(--rule);padding-block:10px 8px;font-family:var(--display);font-weight:900;font-size:24px;text-transform:uppercase}
+.mini{margin:0 0 10px;font-size:12.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.found{list-style:none;margin:0 0 24px;padding:0;display:grid;gap:10px}
+.found li{display:flex;align-items:flex-start;gap:10px;font-size:15.5px;line-height:1.45}
+.found .o{flex:none;width:20px;height:12px;margin-top:6px;border:2px solid var(--ink);border-radius:50%}
+.sched-wrap{overflow-x:auto}
+.sched{width:100%;border-collapse:collapse;font-size:15px;font-variant-numeric:tabular-nums}
+.sched th,.sched td{padding:9px 8px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--hair)}
+.sched th:first-child,.sched td:first-child{padding-left:0;text-align:left}
+.sched thead th{font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);border-bottom:2px solid var(--rule)}
+.sched tbody th{font-weight:600}
+.sched tr.has-ms > *{border-bottom:0;padding-bottom:3px}
+.sched tr.ms td{padding-top:0;padding-bottom:11px;text-align:left;white-space:normal;font-size:14px;line-height:1.45;color:var(--muted)}
+.ms-i{display:block;position:relative;padding-left:16px}
+.ms-i::before{content:"";position:absolute;left:0;top:.55em;width:9px;height:6px;border-radius:50%;background:var(--red)}
+.sched tr.gotv > *{background:var(--tint)}
+.sched tr.eday > *{padding-top:12px;border-bottom:0;font-family:var(--display);font-weight:900;font-size:21px;text-transform:uppercase;color:var(--red)}
+.sched tr.eday td{text-align:left}
+.export{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding-top:22px;border-top:2px solid var(--rule)}
+.flash{font-size:14px;font-weight:600;color:var(--muted)}
+#copyBox{display:block;width:100%;min-height:200px;margin-top:12px;padding:10px;border:2px solid var(--rule);border-radius:0;background:var(--sheet);font:13px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+
+/* locked view */
+.lock{display:grid;grid-template-columns:minmax(0,1fr);padding:22px 18px 28px 34px}
+.lock > *{grid-area:1/1}
+.lock-preview{min-width:0;max-height:1100px;overflow:hidden;filter:blur(4px);opacity:.5;pointer-events:none;user-select:none;-webkit-mask-image:linear-gradient(#000 55%,transparent);mask-image:linear-gradient(#000 55%,transparent)}
+.lock-card{position:relative;z-index:1;align-self:start;justify-self:center;width:100%;max-width:470px;margin-top:6px;padding:24px 22px 22px;background:var(--sheet);border:2px solid var(--rule);box-shadow:var(--shadow)}
+.lock-kick{margin:0;font-size:12.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--red)}
+.lock-title{margin:6px 0 0;font-family:var(--display);font-weight:900;font-size:36px;line-height:.98;text-transform:uppercase;text-wrap:balance}
+.lock-list{list-style:none;margin:16px 0 20px;padding:0;display:grid;gap:9px}
+.lock-list li{display:flex;align-items:flex-start;gap:10px;font-size:15.5px;line-height:1.4}
+.lock-list .o{flex:none;width:20px;height:12px;margin-top:5px;border-radius:50%;background:var(--ink)}
+.fine{margin:12px 0 0;font-size:13.5px;line-height:1.45;color:var(--muted)}
+.code{margin-top:18px;padding-top:16px;border-top:1px solid var(--hair)}
+.code label{display:block;margin-bottom:8px;font-weight:700;font-size:14px}
+.code-row{display:flex;gap:8px}
+.code-row input{flex:1 1 auto;min-width:0;padding:9px 10px;border:2px solid var(--rule);border-radius:0;background:var(--sheet);font-size:16px;letter-spacing:.06em;text-transform:uppercase}
+.code-msg{margin:8px 0 0;font-size:13.5px;min-height:1.2em;color:var(--muted)}
+.code-msg.bad{color:var(--red);font-weight:600}
+
+/* explainer + footer */
+.faq{padding-block:16px 8px}
+.faq-h{margin:0 0 20px;font-family:var(--display);font-weight:900;font-size:clamp(32px,5vw,46px);line-height:1;text-transform:uppercase}
+.faq-grid{display:grid;gap:22px 40px}
+@media (min-width:820px){.faq-grid{grid-template-columns:1fr 1fr}}
+.faq h3{margin:0 0 6px;font-size:17px;line-height:1.3}
+.faq p{margin:0;color:var(--muted);max-width:62ch}
+.foot{display:grid;gap:8px;margin-top:40px;padding-block:20px 40px;border-top:2px solid var(--rule);font-size:14px;color:var(--muted)}
+.foot p{margin:0;max-width:72ch}
+.sel{font-weight:600;color:var(--ink);user-select:all}
+
+.peek{position:fixed;left:0;right:0;bottom:0;z-index:10;display:flex;align-items:center;gap:12px;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:var(--band);color:var(--band-ink);box-shadow:0 -6px 18px rgba(0,0,0,.2)}
+.peek span{font-size:12.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase}
+.peek strong{margin-left:auto;font-family:var(--display);font-weight:900;font-size:30px;line-height:1;font-variant-numeric:tabular-nums}
+.peek a{font-weight:700;font-size:14px;text-underline-offset:3px}
+@media (min-width:820px){.peek{display:none!important}}
+
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
+@media print{
+  .top,.setup,.hero,.inputs,.faq,.peek,.export,.assume,.plan-head .grid-in,.lock,.r-actions,.sample-note,.stamp,.unlock-line,#copyBox{display:none!important}
+  body{background:#fff;color:#000}
+  .sheet{border:1px solid #000}
+  .sheet::before{display:none}
+  .result{position:static;border:0;padding:0}
+}
+</style>
+
+<header class="top">
+  <div class="wrap top-in">
+    <a class="brand" href="#calc"><span class="brand-oval" aria-hidden="true"></span>Votes to Win</a>
+    <span class="top-note">Campaign math for local races</span>
+  </div>
+</header>
+
+<div class="setup" id="setup" hidden>
+  <div class="wrap setup-in">
+    <p><strong>Setup mode.</strong> Checkout isn't connected yet, so nobody can buy. Add a Stripe payment link to start selling.</p>
+    <button type="button" class="btn-line" id="previewBtn">Preview the paid plan</button>
+  </div>
+</div>
+
+<main class="wrap">
+  <section class="hero">
+    <p class="eyebrow">Free calculator for candidates and campaign managers</p>
+    <h1>How many votes do you need to win?</h1>
+    <p class="lede">Put in your district's numbers to get your win number. Every other goal in a campaign, from doors to mail to money, works back from it. Then unlock a full plan to reach it.</p>
+  </section>
+
+  <section class="sheet" id="calc" aria-labelledby="calcTitle">
+    <div class="band"><h2 id="calcTitle">1 · Your win number</h2><span class="band-tag">Free</span></div>
+    <div class="calc">
+      <form class="inputs" id="calcForm" novalidate>
+        <fieldset class="seg">
+          <legend>How do you want to work it out?</legend>
+          <div class="opts">
+            <label id="mTurnoutL" for="mTurnout"><input type="radio" name="method" value="turnout" id="mTurnout">From turnout</label>
+            <label id="mPastL" for="mPast"><input type="radio" name="method" value="past" id="mPast">From the last election</label>
+          </div>
+        </fieldset>
+
+        <div class="inputs" id="turnoutFields">
+          <label class="field" for="registered">
+            <span class="lbl">Registered voters in your district</span>
+            <span class="inp"><input type="number" id="registered" inputmode="numeric" min="0" step="1"></span>
+            <span class="help">Your county clerk or secretary of state posts this number.</span>
+          </label>
+          <fieldset>
+            <legend>Type of election</legend>
+            <div class="opts">
+              <label class="oval"><input type="radio" name="type" value="pres" id="type-pres"><span class="o"></span><span>Presidential year<small>about 66% turnout</small></span></label>
+              <label class="oval"><input type="radio" name="type" value="mid" id="type-mid"><span class="o"></span><span>Midterm<small>about 50%</small></span></label>
+              <label class="oval"><input type="radio" name="type" value="local" id="type-local"><span class="o"></span><span>Off-year or local<small>about 22%</small></span></label>
+              <label class="oval"><input type="radio" name="type" value="primary" id="type-primary"><span class="o"></span><span>Primary<small>about 20%</small></span></label>
+            </div>
+          </fieldset>
+          <label class="field" for="turnout">
+            <span class="lbl">Expected turnout</span>
+            <span class="inp short"><input type="number" id="turnout" inputmode="decimal" min="1" max="100" step="0.5"><span class="unit">%</span></span>
+            <span class="help">The presets are rough national figures. Your district's turnout in its last election of the same type is better.</span>
+          </label>
+          <fieldset>
+            <legend>Candidates running for this seat</legend>
+            <div class="opts">
+              <label class="oval"><input type="radio" name="cands" value="2" id="cands-2"><span class="o"></span><span>Two</span></label>
+              <label class="oval"><input type="radio" name="cands" value="3" id="cands-3"><span class="o"></span><span>Three</span></label>
+              <label class="oval"><input type="radio" name="cands" value="4" id="cands-4"><span class="o"></span><span>Four</span></label>
+              <label class="oval"><input type="radio" name="cands" value="5" id="cands-5"><span class="o"></span><span>Five or more</span></label>
+            </div>
+            <span class="help">If your state requires a majority or holds a runoff, choose two.</span>
+          </fieldset>
+        </div>
+
+        <div class="inputs" id="pastFields" hidden>
+          <label class="field" for="pastWinner">
+            <span class="lbl">Votes the winner got last time</span>
+            <span class="inp"><input type="number" id="pastWinner" inputmode="numeric" min="0" step="1"></span>
+            <span class="help">If voters picked more than one candidate, use the lowest vote total that still won a seat.</span>
+          </label>
+          <label class="field" for="pastBallots">
+            <span class="lbl">Ballots cast in that election</span>
+            <span class="inp"><input type="number" id="pastBallots" inputmode="numeric" min="0" step="1"></span>
+          </label>
+          <label class="field" for="change">
+            <span class="lbl">Change in turnout you expect</span>
+            <span class="inp short"><input type="number" id="change" inputmode="decimal" min="-90" max="300" step="1"><span class="unit">%</span></span>
+            <span class="help">Use 0 if it's the same type of election as last time. Use a higher number if you expect a bigger turnout.</span>
+          </label>
+        </div>
+
+        <label class="field" for="cushion">
+          <span class="lbl">Safety cushion</span>
+          <span class="inp short"><input type="number" id="cushion" inputmode="decimal" min="0" max="50" step="1"><span class="unit">%</span></span>
+          <span class="help">Extra votes in case turnout runs high or your count comes in light. Five percent is a common choice.</span>
+        </label>
+      </form>
+
+      <div class="result" id="result">
+        <div class="r-head"><p class="r-lbl">Your win number</p><span class="stamp" id="stamp">Sample</span></div>
+        <p class="win" id="win">0</p>
+        <p class="r-sub" id="winSub" aria-live="polite"></p>
+        <dl class="facts">
+          <div><dt>Ballots expected</dt><dd id="fProjected">0</dd></div>
+          <div><dt>Bare minimum</dt><dd id="fBase">0</dd></div>
+          <div><dt>Cushion</dt><dd id="fCushion">0</dd></div>
+        </dl>
+        <p class="warn" id="warn" hidden></p>
+        <p class="teaser" id="teaser"></p>
+        <div class="r-actions"><a class="btn-cta" href="#plan">Build the plan</a></div>
+        <p class="sample-note" id="sampleNote">These are example numbers. Put in your district's to get your own.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="sheet" id="plan" aria-labelledby="planTitle">
+    <div class="band"><h2 id="planTitle">2 · Your campaign plan</h2><span class="band-tag" id="planTag">$39</span></div>
+
+    <div class="lock" id="lockView">
+      <div class="lock-preview" id="lockPreview" aria-hidden="true"></div>
+      <div class="lock-card">
+        <p class="lock-kick">Your plan is built</p>
+        <p class="lock-title">Unlock the full plan for <span class="price">$39</span></p>
+        <ul class="lock-list">
+          <li><span class="o" aria-hidden="true"></span><span>Door, phone and volunteer-shift goals for every week</span></li>
+          <li><span class="o" aria-hidden="true"></span><span>A line-item budget and your cost per vote</span></li>
+          <li><span class="o" aria-hidden="true"></span><span>The hours of call time it takes to raise that budget</span></li>
+          <li><span class="o" aria-hidden="true"></span><span>A week-by-week calendar to Election Day, with mail drops and get-out-the-vote</span></li>
+          <li><span class="o" aria-hidden="true"></span><span>Every assumption adjustable, and the plan copies into a doc or spreadsheet</span></li>
+        </ul>
+        <a class="btn-cta full" id="buyBtn" href="#plan">Unlock the full plan · <span class="price">$39</span></a>
+        <p class="fine">One-time payment through Stripe. No account. The plan unlocks on this device as soon as checkout finishes.</p>
+        <p class="code-msg bad" id="buyMsg" role="status" hidden></p>
+        <form class="code" id="codeForm" novalidate>
+          <label for="codeInput">Already paid? Enter your unlock code</label>
+          <div class="code-row"><input id="codeInput" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="VTW-XXXXXX"><button type="submit" class="btn-line">Unlock</button></div>
+          <p class="code-msg" id="codeMsg" role="status"></p>
+        </form>
+      </div>
+    </div>
+
+    <div class="plan" id="openView" hidden>
+      <div class="plan-head">
+        <div>
+          <p class="plan-title" id="planName">Your campaign plan</p>
+          <p class="plan-meta" id="planMeta"></p>
+        </div>
+        <div class="grid-in">
+          <label for="name"><span class="lbl">Candidate</span><input id="name" type="text" autocomplete="off" placeholder="Your name"></label>
+          <label for="office"><span class="lbl">Office</span><input id="office" type="text" autocomplete="off" placeholder="City Council, Ward 3"></label>
+          <label for="eday"><span class="lbl">Election Day</span><input id="eday" type="date"></label>
+          <label for="weeks"><span class="lbl">Weeks of door-knocking</span><input id="weeks" type="number" inputmode="numeric" min="1" max="30" step="1"></label>
+          <label for="early"><span class="lbl">Early voting opens (weeks before)</span><input id="early" type="number" inputmode="numeric" min="0" max="8" step="1"></label>
+        </div>
+        <p class="unlock-line" id="unlockLine" hidden></p>
+      </div>
+      <details class="assume" id="assume">
+        <summary>Change the assumptions</summary>
+        <div class="assume-body" id="assumeBody"></div>
+      </details>
+      <div id="planOut"></div>
+      <div class="export">
+        <button type="button" class="btn-line" id="copyBtn">Copy the plan</button>
+        <button type="button" class="btn-line" id="csvBtn" hidden>Download spreadsheet (CSV)</button>
+        <button type="button" class="btn-line" id="printBtn" hidden>Print or save as PDF</button>
+        <button type="button" class="btn-line" id="relockBtn" hidden>Show the buyer's view</button>
+        <span class="flash" id="flash" role="status"></span>
+      </div>
+      <textarea id="copyBox" readonly hidden aria-label="Your plan as text"></textarea>
+    </div>
+  </section>
+
+  <section class="faq" id="how" aria-labelledby="howTitle">
+    <h2 class="faq-h" id="howTitle">How the math works</h2>
+    <div class="faq-grid">
+      <div><h3>What's a win number?</h3><p>The number of votes you need to win, plus a cushion. Campaign managers set it before anything else, because door goals, the mail plan and the fundraising goal all work back from it.</p></div>
+      <div><h3>Where do I find my district's numbers?</h3><p>Your county clerk or secretary of state posts registered voter counts and past results, usually as a PDF or spreadsheet. Look up the last race for the same office, or the last election of the same type.</p></div>
+      <div><h3>Which method should I use?</h3><p>Use the last election when your race has a recent result to compare against. It's also the better method when voters pick more than one candidate, as in many council and school board races. Use turnout for a new district or when past results are hard to find.</p></div>
+      <div><h3>How are races with three or more candidates handled?</h3><p>With two candidates you need half the ballots plus one. With more, the top vote-getter wins, so the calculator plans for 40% in a three-way race, 35% in a four-way race and 30% with five or more. If your state requires a majority, plan for half plus one.</p></div>
+      <div><h3>Why add a cushion?</h3><p>Turnout surprises happen, and some voters skip races down the ballot. A cushion of about five percent protects you from a count that comes in light.</p></div>
+      <div><h3>How does the plan turn votes into doors?</h3><p>It assumes you earn half your votes by talking to voters, and that half the voters you talk to back you. About one door in four answers, and a volunteer knocks about 15 doors an hour. You can change every assumption.</p></div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <p>Made by a campaign manager with more than ten years on congressional, U.S. Senate and governor's races.</p>
+    <p>Prices are in US dollars. The full plan is a one-time purchase that unlocks right after checkout on the device you buy from.</p>
+    <p id="support" hidden></p>
+    <p>Privacy: everything you type stays in your browser. Votes to Win doesn't collect or send your numbers anywhere, and Stripe handles checkout, so card details never touch this site.</p>
+    <p>Votes to Win gives planning estimates, not legal or financial advice. Check filing deadlines, sign rules and campaign finance law with your election office.</p>
+  </footer>
+</main>
+
+<div class="peek" id="peek" hidden><span>Win number</span><strong id="peekWin">0</strong><a href="#result">See it</a></div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ===== Settings to edit ===== */
+  var CONFIG = {
+    price: 39,
+    // Paste the Stripe Payment Link here (https://buy.stripe.com/...). Empty = setup mode.
+    paymentLink: "",
+    // SHA-256 of the unlock code. Stripe's "After payment" redirect goes to this page with ?unlock=CODE
+    unlockHash: "bee9860864e053dd25040c9f9877550ced348796fa544f6c36ceaa5c15ce2dc4",
+    // Shown in the footer when set
+    supportEmail: "josh@JoshTreat.com",
+    // true on the public site: hides the owner's setup banner and preview button
+    live: true
+  };
+
+  var KEY_INPUTS = "vtw:inputs:v1";
+  var KEY_UNLOCK = "vtw:unlock:v1";
+  var DAY = 864e5;
+  var TYPES = { pres: 66, mid: 50, local: 22, primary: 20 };
+  var PLURALITY = { 3: 0.40, 4: 0.35, 5: 0.30 };
+  var CALC_KEYS = ["registered", "turnout", "cushion", "pastWinner", "pastBallots", "change"];
+  var ASSUME = [
+    { group: "Talking to voters", fields: [
+      ["direct", "Votes you earn by talking to voters", "%", 0, 100, 1],
+      ["support", "Voters you talk to who back you", "%", 1, 100, 1],
+      ["doorShare", "Conversations at the door (the rest by phone)", "%", 0, 100, 5],
+      ["doorRate", "Doors where someone answers", "%", 1, 100, 1],
+      ["dph", "Doors knocked per hour", "", 1, 60, 1],
+      ["phoneRate", "Calls that reach a voter", "%", 1, 100, 1],
+      ["cph", "Calls dialed per hour", "", 1, 200, 1],
+      ["shift", "Hours in a volunteer shift", "hrs", 0.5, 12, 0.5]
+    ]},
+    { group: "Costs", fields: [
+      ["pieces", "Mail pieces per household", "", 0, 8, 1],
+      ["mailCost", "Cost per mail piece, printed and mailed", "$", 0, 10, 0.01],
+      ["signCost", "Cost per yard sign with stake", "$", 0, 100, 0.25],
+      ["litCost", "Cost per palm card or door hanger", "$", 0, 5, 0.01],
+      ["digital", "Digital ads", "$", 0, 10000000, 50],
+      ["site", "Website and email", "$", 0, 1000000, 25],
+      ["filing", "Filing fee", "$", 0, 1000000, 5],
+      ["cont", "Contingency", "%", 0, 50, 1]
+    ]},
+    { group: "Fundraising", fields: [
+      ["self", "Your own money going in", "$", 0, 10000000, 100],
+      ["gift", "Average donation", "$", 1, 100000, 5],
+      ["reach", "People you reach per hour of calls", "", 0.5, 60, 0.5],
+      ["yes", "Share of people asked who give", "%", 1, 100, 1]
+    ]}
+  ];
+
+  /* ===== Small helpers ===== */
+  function $(id) { return document.getElementById(id); }
+  var store = {
+    get: function (k) { try { return window.localStorage.getItem(k); } catch (e) { return null; } },
+    set: function (k, v) { try { window.localStorage.setItem(k, v); } catch (e) {} }
+  };
+  function parse(s) { try { return s ? JSON.parse(s) : null; } catch (e) { return null; } }
+  function num(v, d) { var x = typeof v === "number" ? v : parseFloat(v); return isFinite(x) ? x : d; }
+  function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
+  function up(x) { return Math.ceil(x - 1e-9); }
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (ch) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]; }); }
+  var NF = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
+  function fmt(v) { return NF.format(Math.round(v)); }
+  function money(v) { return "$" + NF.format(Math.round(v)); }
+  function cents(v) { return "$" + (Math.round(v * 100) / 100).toFixed(2); }
+  function trimN(v) { return String(Math.round(v * 100) / 100); }
+  function about(v) {
+    if (v < 100) return Math.max(10, Math.ceil(v / 10) * 10);
+    if (v < 1000) return Math.round(v / 50) * 50;
+    if (v < 10000) return Math.round(v / 100) * 100;
+    return Math.round(v / 500) * 500;
+  }
+  function listJoin(a) { return a.length < 2 ? String(a[0]) : a.slice(0, -1).join(", ") + " and " + a[a.length - 1]; }
+
+  function today() { var d = new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+  function addDays(d, n) { return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n); }
+  function daysBetween(a, b) { return Math.round((b - a) / DAY); }
+  function iso(d) { return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+  function parseISO(s) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || "");
+    if (!m) return null;
+    var d = new Date(+m[1], +m[2] - 1, +m[3]);
+    return isNaN(d.getTime()) ? null : d;
+  }
+  var MD = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" });
+  var LONG = new Intl.DateTimeFormat("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" });
+  function md(d) { return MD.format(d); }
+  function longDate(d) { return LONG.format(d); }
+  function span(a, b) { return a.getMonth() === b.getMonth() ? md(a) + "–" + b.getDate() : md(a) + "–" + md(b); }
+  function nextElectionDay() {
+    var t = today();
+    for (var y = t.getFullYear(); y < t.getFullYear() + 4; y++) {
+      var nov1 = new Date(y, 10, 1);
+      var firstMon = 1 + ((8 - nov1.getDay()) % 7);
+      var eday = new Date(y, 10, firstMon + 1);
+      if (daysBetween(t, eday) >= 56) return eday;
+    }
+    return addDays(t, 120);
+  }
+
+  /* ===== State ===== */
+  function defaults() {
+    return {
+      method: "turnout", registered: 18400, type: "local", turnout: 22, cands: 2, cushion: 5,
+      pastWinner: 1840, pastBallots: 3900, change: 5,
+      name: "", office: "", eday: iso(nextElectionDay()), weeks: 12, early: 4,
+      direct: 50, support: 50, doorShare: 70, doorRate: 25, dph: 15, phoneRate: 10, cph: 30, shift: 3,
+      pieces: 3, mailCost: 0.55, signCost: 5, litCost: 0.08, digital: null, site: 300, filing: 0, cont: 10,
+      self: 0, gift: 75, reach: 6, yes: 30
+    };
+  }
+  var state = defaults();
+  var sample = true;
+  var savedInputs = parse(store.get(KEY_INPUTS));
+  if (savedInputs && savedInputs.s && typeof savedInputs.s === "object") {
+    state = Object.assign(defaults(), savedInputs.s);
+    sample = savedInputs.sample === true;
+  }
+  var unlocked = false, preview = false, unlockCode = null;
+  var savedUnlock = parse(store.get(KEY_UNLOCK));
+  if (savedUnlock && savedUnlock.h === CONFIG.unlockHash) { unlocked = true; unlockCode = savedUnlock.code || null; }
+  var setupMode = !CONFIG.paymentLink;
+  var topLevel = (function () { try { return window.self === window.top; } catch (e) { return false; } })();
+  var reduceMotion = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+
+  function save() { store.set(KEY_INPUTS, JSON.stringify({ s: state, sample: sample })); }
+
+  /* ===== The math ===== */
+  function spread(total, weights) {
+    var sum = weights.reduce(function (a, b) { return a + b; }, 0);
+    var out = weights.map(function (w) { return Math.floor(total * w / sum); });
+    var rem = total - out.reduce(function (a, b) { return a + b; }, 0);
+    for (var i = out.length - 1; rem > 0; i = i === 0 ? out.length - 1 : i - 1) { out[i]++; rem--; }
+    return out;
+  }
+
+  function compute(s) {
+    var c = {};
+    var cush = clamp(num(s.cushion, 0), 0, 100);
+    if (s.method === "past") {
+      var pw = Math.max(0, num(s.pastWinner, 0)), pb = Math.max(0, num(s.pastBallots, 0)), ch = clamp(num(s.change, 0), -95, 500);
+      c.projected = Math.round(pb * (1 + ch / 100));
+      c.base = up(pw * (1 + ch / 100));
+      if (pb > 0 && pw > pb) c.warn = "The winner's votes can't be more than the ballots cast. Check both numbers.";
+    } else {
+      var reg = Math.max(0, num(s.registered, 0)), turn = clamp(num(s.turnout, 0), 0, 100);
+      var k = clamp(Math.round(num(s.cands, 2)), 2, 5);
+      c.projected = Math.round(reg * turn / 100);
+      c.base = c.projected <= 0 ? 0 : (k === 2 ? Math.floor(c.projected / 2) + 1 : up(c.projected * PLURALITY[k]));
+    }
+    c.win = up(c.base * (1 + cush / 100));
+    c.cushionVotes = c.win - c.base;
+    c.share = c.projected > 0 ? c.win / c.projected : 0;
+    if (!c.warn && c.projected > 0 && c.win > c.projected) c.warn = "Your win number is bigger than the ballots you expect. Lower the cushion or check your numbers.";
+    c.ready = c.projected > 0 && c.win > 0;
+    c.valid = c.ready && !c.warn;
+
+    // Voter contact
+    var direct = clamp(num(s.direct, 50), 0, 100) / 100, support = clamp(num(s.support, 50), 1, 100) / 100;
+    var doorShare = clamp(num(s.doorShare, 70), 0, 100) / 100;
+    var doorRate = clamp(num(s.doorRate, 25), 1, 100) / 100, phoneRate = clamp(num(s.phoneRate, 10), 1, 100) / 100;
+    var dph = Math.max(1, num(s.dph, 15)), cph = Math.max(1, num(s.cph, 30));
+    c.shift = Math.max(0.5, num(s.shift, 3));
+    var conv = c.win * direct / support;
+    c.conversations = up(conv);
+    c.knocks = up(conv * doorShare / doorRate);
+    c.dials = up(conv * (1 - doorShare) / phoneRate);
+
+    // Budget
+    c.pieces = clamp(Math.round(num(s.pieces, 3)), 0, 8);
+    c.mailCost = Math.max(0, num(s.mailCost, 0));
+    c.signCost = Math.max(0, num(s.signCost, 0));
+    c.litCost = Math.max(0, num(s.litCost, 0));
+    c.cont = clamp(num(s.cont, 10), 0, 100);
+    c.households = up(c.projected / 1.5);
+    c.mailQty = c.households * c.pieces;
+    c.mailTotal = c.mailQty * c.mailCost;
+    c.signs = Math.max(25, Math.round(c.projected * 0.04 / 25) * 25);
+    c.signTotal = c.signs * c.signCost;
+    c.litQty = Math.max(100, up(c.knocks * 1.1 / 100) * 100);
+    c.litTotal = c.litQty * c.litCost;
+    c.digitalAuto = Math.max(250, Math.round(c.projected * 0.25 / 50) * 50);
+    c.digitalIsAuto = s.digital === null || s.digital === "" || !isFinite(parseFloat(s.digital));
+    c.digital = c.digitalIsAuto ? c.digitalAuto : Math.max(0, parseFloat(s.digital));
+    c.site = Math.max(0, num(s.site, 0));
+    c.filing = Math.max(0, num(s.filing, 0));
+    c.subtotal = c.mailTotal + c.signTotal + c.litTotal + c.digital + c.site + c.filing;
+    c.contAmt = c.subtotal * c.cont / 100;
+    c.total = c.subtotal + c.contAmt;
+    c.perVote = c.win > 0 ? c.total / c.win : 0;
+
+    // Fundraising
+    c.gift = Math.max(1, num(s.gift, 75));
+    c.yesPct = clamp(num(s.yes, 30), 1, 100);
+    var reach = Math.max(0.5, num(s.reach, 6));
+    c.self = Math.max(0, num(s.self, 0));
+    c.goal = Math.max(0, c.total - c.self);
+    c.gifts = up(c.goal / c.gift);
+    c.asks = up(c.gifts / (c.yesPct / 100));
+    c.callHours = c.asks / reach;
+
+    // Calendar
+    var t = today(), e = parseISO(s.eday);
+    c.eday = e;
+    c.dateOk = !!e && e > t;
+    var N = clamp(Math.round(num(s.weeks, 12)), 1, 30);
+    c.squeezed = false;
+    if (c.dateOk) {
+      var nmax = Math.max(1, Math.floor((daysBetween(t, e) + 1) / 7));
+      if (N > nmax) { N = nmax; c.squeezed = true; }
+      c.fundEnd = addDays(e, -21);
+      var fs = addDays(c.fundEnd, -26 * 7);
+      if (fs < t) fs = t;
+      c.fundStart = fs;
+      c.fundLate = c.fundEnd <= t;
+      c.fundWeeks = c.fundLate ? 1 : Math.max(1, Math.round(daysBetween(fs, c.fundEnd) / 7));
+      c.callWk = c.callHours / c.fundWeeks;
+    }
+    c.N = N;
+    if (!c.dateOk) return c;
+
+    var weights = [];
+    for (var i = 0; i < N; i++) weights.push(N === 1 ? 1 : 0.8 + 0.4 * i / (N - 1));
+    var doors = spread(c.knocks, weights), dials = spread(c.dials, weights);
+    c.rows = [];
+    c.shifts = 0;
+    for (i = 0; i < N; i++) {
+      var wk = N - 1 - i;
+      var start = addDays(e, -7 * (wk + 1) + 1), end = addDays(e, -7 * wk);
+      var sh = (doors[i] + dials[i]) > 0 ? up((doors[i] / dph + dials[i] / cph) / c.shift) : 0;
+      c.shifts += sh;
+      c.rows.push({ k: wk, start: start, end: end, label: span(start, end), doors: doors[i], dials: dials[i], shifts: sh, ms: [] });
+    }
+    c.knocksWk = c.knocks / N; c.dialsWk = c.dials / N; c.shiftsWk = c.shifts / N;
+
+    // Milestones, by weeks out (0 = the week that ends on Election Day)
+    var later = [];
+    function weekStart(k) { return addDays(e, -7 * (k + 1) + 1); }
+    function at(k, text) {
+      if (k >= 0 && k <= N - 1) { c.rows[N - 1 - k].ms.push(text); return true; }
+      return false;
+    }
+    if (N >= 6) at(Math.floor(N / 2), "Halfway check. Compare doors knocked with your goal and add shifts if you're behind.");
+    if (!at(5, "Put up yard signs, if your town allows them this early.")) later.push("Put up yard signs before you start knocking, if your town allows it.");
+    var early = clamp(Math.round(num(s.early, 4)), 0, 8);
+    if (c.pieces > 0) {
+      var top = Math.max(c.pieces, early, 1), drops = {};
+      for (var j = 0; j < c.pieces; j++) {
+        var dk = c.pieces === 1 ? Math.max(1, early) : Math.round(top - j * (top - 1) / (c.pieces - 1));
+        (drops[dk] = drops[dk] || []).push(j + 1);
+      }
+      Object.keys(drops).map(Number).sort(function (a, b) { return b - a; }).forEach(function (dk) {
+        var nums = drops[dk], one = nums.length === 1;
+        var name = (one ? "mail piece " : "mail pieces ") + listJoin(nums);
+        var order = "Send " + name + " to the printer.";
+        if (!at(dk + 2, order)) later.push("Send " + name + " to the printer by " + md(weekStart(dk + 2)) + ".");
+        var land = name.charAt(0).toUpperCase() + name.slice(1) + (one ? " lands" : " land") + " in mailboxes.";
+        if (!at(dk, land)) later.push(name.charAt(0).toUpperCase() + name.slice(1) + (one ? " lands" : " land") + " the week of " + md(weekStart(dk)) + ".");
+      });
+      at(3, "Have the money for your last mail piece in the bank.");
+    }
+    if (early > 0 && !at(early, "Early and absentee voting opens around now. Confirm the date with your county.")) {
+      later.push("Early and absentee voting opens around " + md(weekStart(early)) + ". Confirm the date with your county.");
+    }
+    at(1, "Line up every volunteer for the final weekend.");
+    at(0, "Get out the vote. Knock on your supporters' doors and make sure each one has a plan to vote.");
+    c.rows[0].ms.unshift("Start knocking. Introduce yourself and note who supports you.");
+
+    // Before the first knock
+    var start0 = c.rows[0].start;
+    c.found = [
+      "Appoint a treasurer, open a campaign bank account, and confirm your filing deadline and finance rules with your election office.",
+      "Get your voter list from your county or party, and pull the last results for your district.",
+      c.fundLate
+        ? "Make your fundraising calls this week. The money for mail is already due."
+        : "Start call time by " + md(c.fundStart) + ", about " + c.callWk.toFixed(1) + " hours a week.",
+      "Recruit volunteers. You'll need about " + fmt(c.shiftsWk) + " shifts a week by " + md(start0) + ".",
+      "Order " + fmt(c.litQty) + " palm cards or door hangers and " + fmt(c.signs) + " yard signs."
+    ].concat(later);
+    c.foundTo = daysBetween(t, start0) <= 1 ? "this week" : "now through " + md(addDays(start0, -1));
+    return c;
+  }
+
+  function budgetLines(c, X) {
+    return [
+      ["Mail", c.pieces > 0 ? X(fmt(c.mailQty)) + " pieces to " + X(fmt(c.households)) + " likely-voter households at " + X(cents(c.mailCost)) + " each" : "No mail planned", c.mailTotal],
+      ["Yard signs", X(fmt(c.signs)) + " signs at " + X(cents(c.signCost)), c.signTotal],
+      ["Door handouts", X(fmt(c.litQty)) + " palm cards or door hangers at " + X(cents(c.litCost)), c.litTotal],
+      ["Digital ads", c.digitalIsAuto ? "Social and streaming ads aimed at your district" : "Your amount", c.digital],
+      ["Website and email", "Domain, a simple site and an email list", c.site],
+      ["Filing fee", c.filing > 0 ? "Your amount" : "Check the fee with your election office", c.filing],
+      ["Contingency", X(trimN(c.cont)) + "% for surprises", c.contAmt]
+    ];
+  }
+
+  function planHTML(c, masked) {
+    var X = function (v) { return masked ? String(v).replace(/\d/g, "•") : String(v); };
+    var f = function (v) { return X(fmt(v)); };
+    var m = function (v) { return X(money(v)); };
+    var st = function (n, l) { return '<div class="stat"><span class="s-num">' + n + '</span><span class="s-lbl">' + l + "</span></div>"; };
+    var h = "";
+
+    h += '<div class="block"><h3 class="sub">Talk to voters</h3><div class="stats">'
+      + st(f(c.conversations), "conversations with voters")
+      + st(f(c.knocks), "door knocks")
+      + st(f(c.dials), "phone calls")
+      + st(f(c.shifts), "volunteer shifts of " + trimN(c.shift) + " hours")
+      + '</div><p class="note">Spread over ' + c.N + (c.N === 1 ? " week" : " weeks") + ", that's about " + f(c.knocksWk) + " doors, " + f(c.dialsWk) + " calls and " + f(c.shiftsWk) + " shifts a week, with more in the final stretch."
+      + (c.squeezed ? " Only " + c.N + (c.N === 1 ? " week is" : " weeks are") + " left, so the plan fits the work into " + (c.N === 1 ? "it." : "them.") : "")
+      + "</p></div>";
+
+    h += '<div class="block"><h3 class="sub">Budget</h3><table class="ledger"><tbody>'
+      + budgetLines(c, X).map(function (r) { return '<tr><td><span class="item">' + r[0] + '</span><span class="det">' + r[1] + '</span></td><td class="amt">' + m(r[2]) + "</td></tr>"; }).join("")
+      + '<tr class="total"><td>Total budget</td><td class="amt">' + m(c.total) + "</td></tr></tbody></table>"
+      + '<p class="note">That works out to <strong>' + X(cents(c.perVote)) + "</strong> for each vote in your win number. Prices vary by region, so get quotes from local printers before you order.</p></div>";
+
+    h += '<div class="block"><h3 class="sub">Raise the money</h3><div class="stats">'
+      + st(m(c.goal), "to raise")
+      + st(f(c.gifts), "donations at " + m(c.gift) + " on average")
+      + st(f(c.asks), "asks, if " + X(trimN(c.yesPct)) + "% say yes")
+      + st(X(c.callWk.toFixed(1)), "hours of call time a week")
+      + '</div><p class="note">'
+      + (c.fundLate
+        ? "The deadline for mail money has passed. Raise what you can this week and trim the budget to match."
+        : "That's " + f(Math.ceil(c.callHours)) + " hours of calls over " + c.fundWeeks + " weeks, starting " + md(c.fundStart) + ". Have the money for your last mail piece in the bank by " + md(c.fundEnd) + ".")
+      + (c.self > 0 ? " Your own " + m(c.self) + " is already counted." : "")
+      + "</p></div>";
+
+    var rows = masked ? c.rows.slice(0, 4) : c.rows;
+    h += '<div class="block"><h3 class="sub">Week by week</h3>'
+      + '<p class="mini">Before you knock: ' + X(c.foundTo) + "</p>"
+      + '<ul class="found">' + c.found.map(function (x) { return '<li><span class="o" aria-hidden="true"></span><span>' + X(x) + "</span></li>"; }).join("") + "</ul>"
+      + '<div class="sched-wrap"><table class="sched"><thead><tr><th scope="col">Week</th><th scope="col">Doors</th><th scope="col">Calls</th><th scope="col">Shifts</th></tr></thead><tbody>'
+      + rows.map(function (r) {
+          var cls = (r.ms.length ? "has-ms" : "") + (r.k === 0 ? " gotv" : "");
+          var out = '<tr class="' + cls.trim() + '"><th scope="row">' + r.label + "</th><td>" + f(r.doors) + "</td><td>" + f(r.dials) + "</td><td>" + f(r.shifts) + "</td></tr>";
+          if (r.ms.length) out += '<tr class="ms' + (r.k === 0 ? " gotv" : "") + '"><td colspan="4">' + r.ms.map(function (x) { return '<span class="ms-i">' + X(x) + "</span>"; }).join("") + "</td></tr>";
+          return out;
+        }).join("")
+      + (masked ? "" : '<tr class="eday"><th scope="row">' + md(c.eday) + '</th><td colspan="3">Election Day</td></tr>')
+      + "</tbody></table></div></div>";
+    return h;
+  }
+
+  function planText(c) {
+    var L = [], id = function (v) { return v; };
+    L.push("CAMPAIGN PLAN" + (state.name ? " FOR " + String(state.name).toUpperCase() : ""));
+    if (state.office) L.push(String(state.office));
+    L.push("Election Day: " + longDate(c.eday), "");
+    L.push("WIN NUMBER: " + fmt(c.win) + " votes (" + (c.share * 100).toFixed(1) + "% of " + fmt(c.projected) + " expected ballots)", "");
+    L.push("TALK TO VOTERS, OVER " + c.N + " WEEKS");
+    L.push("Conversations with voters: " + fmt(c.conversations), "Door knocks: " + fmt(c.knocks), "Phone calls: " + fmt(c.dials), "Volunteer shifts of " + trimN(c.shift) + " hours: " + fmt(c.shifts), "");
+    L.push("BUDGET");
+    budgetLines(c, id).forEach(function (r) { L.push(r[0] + ": " + money(r[2]) + " (" + r[1] + ")"); });
+    L.push("Total: " + money(c.total) + " (" + cents(c.perVote) + " per vote)", "");
+    L.push("FUNDRAISING");
+    L.push("Goal: " + money(c.goal), "Donations at " + money(c.gift) + " average: " + fmt(c.gifts), "Asks at " + trimN(c.yesPct) + "% yes: " + fmt(c.asks));
+    L.push(c.fundLate ? "Call time: " + fmt(Math.ceil(c.callHours)) + " hours, starting now" : "Call time: " + fmt(Math.ceil(c.callHours)) + " hours, about " + c.callWk.toFixed(1) + " a week from " + md(c.fundStart) + " to " + md(c.fundEnd), "");
+    L.push("BEFORE YOU KNOCK (" + c.foundTo.toUpperCase() + ")");
+    c.found.forEach(function (x) { L.push("- " + x); });
+    L.push("", "WEEK BY WEEK");
+    c.rows.forEach(function (r) {
+      L.push(r.label + ": " + fmt(r.doors) + " doors, " + fmt(r.dials) + " calls, " + fmt(r.shifts) + " shifts");
+      r.ms.forEach(function (x) { L.push("   - " + x); });
+    });
+    L.push(longDate(c.eday) + ": ELECTION DAY", "", "Made with Votes to Win");
+    return L.join("\n");
+  }
+
+  function planCSV(c) {
+    var q = function (v) { return '"' + String(v).replace(/"/g, '""') + '"'; };
+    var out = [["Week", "Starts", "Ends", "Doors", "Calls", "Shifts", "Milestones"].map(q).join(",")];
+    c.rows.forEach(function (r) { out.push([r.label, iso(r.start), iso(r.end), r.doors, r.dials, r.shifts, r.ms.join(" ")].map(q).join(",")); });
+    out.push("", ["Budget item", "Details", "Amount"].map(q).join(","));
+    budgetLines(c, function (v) { return v; }).forEach(function (r) { out.push([r[0], r[1], Math.round(r[2])].map(q).join(",")); });
+    out.push(["Total", "", Math.round(c.total)].map(q).join(","));
+    return out.join("\r\n");
+  }
+
+  /* ===== Rendering ===== */
+  var shownWin = null, raf = 0, lastReady = false;
+  function setWin(v) {
+    var el = $("win");
+    cancelAnimationFrame(raf);
+    if (shownWin === null || reduceMotion || Math.abs(v - shownWin) < 2) { el.textContent = fmt(v); shownWin = v; return; }
+    var from = shownWin, t0 = performance.now(), dur = 420;
+    shownWin = v;
+    var step = function (now) {
+      var p = Math.min(1, (now - t0) / dur), k = 1 - Math.pow(1 - p, 3);
+      el.textContent = fmt(from + (v - from) * k);
+      if (p < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+  }
+
+  function renderCalc(c) {
+    lastReady = c.ready;
+    if (c.ready) {
+      setWin(c.win);
+      $("winSub").textContent = "votes. That's " + (c.share * 100).toFixed(1) + "% of the " + fmt(c.projected) + " ballots you expect.";
+      $("fProjected").textContent = fmt(c.projected);
+      $("fBase").textContent = fmt(c.base);
+      $("fCushion").textContent = "+" + fmt(c.cushionVotes);
+      $("peekWin").textContent = fmt(c.win);
+      $("teaser").hidden = !c.valid;
+      $("teaser").innerHTML = "To earn that, plan on about <strong>" + fmt(about(c.knocks)) + " door knocks</strong> before Election Day. The full plan breaks it into weekly goals.";
+    } else {
+      shownWin = null;
+      $("win").textContent = "—";
+      $("winSub").textContent = state.method === "past" ? "Enter last election's numbers to see your win number." : "Enter your district's registered voters and turnout to see your win number.";
+      ["fProjected", "fBase", "fCushion"].forEach(function (id) { $(id).textContent = "—"; });
+      $("peekWin").textContent = "—";
+      $("teaser").hidden = true;
+    }
+    $("warn").hidden = !c.warn;
+    $("warn").textContent = c.warn || "";
+    $("stamp").hidden = !sample;
+    $("sampleNote").hidden = !sample;
+  }
+
+  function renderPlan(c) {
+    var open = unlocked || preview;
+    $("lockView").hidden = open;
+    $("openView").hidden = !open;
+    $("planTag").textContent = preview ? "Owner preview" : (unlocked ? "Unlocked" : "$" + CONFIG.price);
+    var body;
+    if (!c.valid) body = '<p class="empty">Fill in your win number above and the plan builds itself here.</p>';
+    else if (!c.dateOk) body = '<p class="empty">Pick an Election Day that\'s still ahead to build the calendar.</p>';
+    else body = planHTML(c, !open);
+    if (!open) { $("lockPreview").innerHTML = body; return; }
+    $("planOut").innerHTML = body;
+    $("planName").textContent = state.name ? "Campaign plan for " + state.name : "Your campaign plan";
+    var meta = [];
+    if (state.office) meta.push(state.office);
+    if (c.eday) meta.push("Election Day " + longDate(c.eday));
+    if (c.valid) meta.push("Win number " + fmt(c.win));
+    $("planMeta").textContent = meta.join(" · ");
+    var line = $("unlockLine");
+    if (preview) {
+      line.hidden = false;
+      line.textContent = "Owner preview. Buyers see this after checkout.";
+    } else if (unlockCode) {
+      line.hidden = false;
+      line.innerHTML = "Unlocked on this device. To open your plan on another device, use your code <strong>" + esc(unlockCode) + "</strong>.";
+    } else {
+      line.hidden = true;
+    }
+    $("relockBtn").hidden = !preview;
+    var dig = $("digital");
+    if (dig) dig.placeholder = "Auto: " + fmt(c.digitalAuto);
+  }
+
+  var pending = false;
+  function render() {
+    pending = false;
+    var c = compute(state);
+    renderCalc(c);
+    renderPlan(c);
+  }
+  function scheduleRender() {
+    if (pending) return;
+    pending = true;
+    requestAnimationFrame(render);
+  }
+
+  /* ===== Inputs ===== */
+  function buildAssumptions() {
+    var host = $("assumeBody");
+    ASSUME.forEach(function (g) {
+      var wrap = document.createElement("div");
+      wrap.innerHTML = "<h4>" + g.group + '</h4><div class="grid-in">' + g.fields.map(function (fd) {
+        var id = fd[0], label = fd[1], unit = fd[2];
+        return '<label for="' + id + '"><span class="lbl">' + label + '</span><span class="inp">'
+          + (unit === "$" ? '<span class="unit">$</span>' : "")
+          + '<input id="' + id + '" type="number" inputmode="decimal" min="' + fd[3] + '" max="' + fd[4] + '" step="' + fd[5] + '">'
+          + (unit && unit !== "$" ? '<span class="unit">' + unit + "</span>" : "")
+          + "</span></label>";
+      }).join("") + "</div>";
+      host.appendChild(wrap);
+    });
+  }
+
+  var touched = false, vis = { form: false, result: true };
+  function updatePeek() { $("peek").hidden = !(touched && vis.form && !vis.result && lastReady); }
+  function onChange(isCalc) {
+    if (isCalc && sample) sample = false;
+    if (isCalc) touched = true;
+    save();
+    scheduleRender();
+    updatePeek();
+  }
+
+  function bindNumber(id) {
+    var el = $(id);
+    if (!el) return;
+    el.value = state[id] === null || state[id] === undefined ? "" : state[id];
+    el.addEventListener("input", function () {
+      state[id] = el.value === "" ? null : parseFloat(el.value);
+      if (id === "turnout") syncTypeFromTurnout();
+      onChange(CALC_KEYS.indexOf(id) >= 0);
+    });
+  }
+  function bindText(id) {
+    var el = $(id);
+    el.value = state[id] || "";
+    el.addEventListener("input", function () { state[id] = el.value; onChange(false); });
+  }
+
+  function syncMethod() {
+    var past = state.method === "past";
+    $("turnoutFields").hidden = past;
+    $("pastFields").hidden = !past;
+    $("mTurnout").checked = !past;
+    $("mPast").checked = past;
+    $("mTurnoutL").classList.toggle("on", !past);
+    $("mPastL").classList.toggle("on", past);
+  }
+  function syncRadios() {
+    document.querySelectorAll('input[name="type"]').forEach(function (r) { r.checked = r.value === state.type; });
+    document.querySelectorAll('input[name="cands"]').forEach(function (r) { r.checked = Number(r.value) === clamp(Math.round(num(state.cands, 2)), 2, 5); });
+  }
+  function syncTypeFromTurnout() {
+    var match = "";
+    Object.keys(TYPES).forEach(function (k) { if (TYPES[k] === state.turnout) match = k; });
+    state.type = match;
+    syncRadios();
+  }
+
+  function flash(msg) {
+    var el = $("flash");
+    el.textContent = msg;
+    clearTimeout(flash.t);
+    flash.t = setTimeout(function () { el.textContent = ""; }, 5000);
+  }
+
+  /* ===== Unlocking ===== */
+  function sha256(str) {
+    if (!(window.crypto && window.crypto.subtle && window.TextEncoder)) return Promise.resolve(null);
+    return window.crypto.subtle.digest("SHA-256", new TextEncoder().encode(str)).then(function (buf) {
+      return Array.prototype.map.call(new Uint8Array(buf), function (b) { return b.toString(16).padStart(2, "0"); }).join("");
+    }).catch(function () { return null; });
+  }
+  function tryCode(raw) {
+    var code = String(raw || "").trim().toUpperCase().replace(/\s+/g, "");
+    if (!code) return Promise.resolve(false);
+    return sha256(code).then(function (h) {
+      if (h && h === CONFIG.unlockHash) {
+        unlocked = true;
+        unlockCode = code;
+        store.set(KEY_UNLOCK, JSON.stringify({ h: h, code: code }));
+        scheduleRender();
+        return true;
+      }
+      return false;
+    });
+  }
+
+  /* ===== Start ===== */
+  buildAssumptions();
+  CALC_KEYS.forEach(bindNumber);
+  ["weeks", "early"].forEach(bindNumber);
+  ASSUME.forEach(function (g) { g.fields.forEach(function (fd) { bindNumber(fd[0]); }); });
+  ["name", "office"].forEach(bindText);
+  var edayEl = $("eday");
+  edayEl.value = state.eday || "";
+  edayEl.addEventListener("input", function () { state.eday = edayEl.value; onChange(false); });
+  edayEl.addEventListener("change", function () { state.eday = edayEl.value; onChange(false); });
+
+  document.querySelectorAll('input[name="method"]').forEach(function (r) {
+    r.addEventListener("change", function () { state.method = r.value; syncMethod(); onChange(true); });
+  });
+  document.querySelectorAll('input[name="type"]').forEach(function (r) {
+    r.addEventListener("change", function () {
+      state.type = r.value;
+      state.turnout = TYPES[r.value];
+      $("turnout").value = state.turnout;
+      onChange(true);
+    });
+  });
+  document.querySelectorAll('input[name="cands"]').forEach(function (r) {
+    r.addEventListener("change", function () { state.cands = parseInt(r.value, 10); onChange(true); });
+  });
+  syncMethod();
+  syncRadios();
+
+  document.querySelectorAll(".price").forEach(function (el) { el.textContent = "$" + CONFIG.price; });
+  $("setup").hidden = !setupMode || CONFIG.live;
+  if (setupMode) {
+    if (CONFIG.live) {
+      $("buyBtn").classList.add("soon");
+      $("buyBtn").setAttribute("aria-disabled", "true");
+      $("buyBtn").innerHTML = "Checkout opens soon";
+    }
+    $("buyBtn").addEventListener("click", function (ev) {
+      ev.preventDefault();
+      var msg = $("buyMsg");
+      msg.hidden = false;
+      msg.textContent = CONFIG.live ? "Checkout opens in a few days. The calculator above is free to use now." : "Checkout isn't connected yet. Add a Stripe payment link to turn it on.";
+    });
+  } else {
+    $("buyBtn").href = CONFIG.paymentLink;
+  }
+  $("previewBtn").addEventListener("click", function () {
+    preview = true;
+    render();
+    $("plan").scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+  });
+  $("relockBtn").addEventListener("click", function () { preview = false; render(); });
+
+  $("codeForm").addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    var msg = $("codeMsg");
+    tryCode($("codeInput").value).then(function (ok) {
+      msg.classList.toggle("bad", !ok);
+      msg.textContent = ok ? "" : "That code didn't match. Check it for typos and try again.";
+    });
+  });
+
+  $("copyBtn").addEventListener("click", function () {
+    var c = compute(state);
+    if (!c.valid || !c.dateOk) { flash("Fill in your numbers first."); return; }
+    var txt = planText(c);
+    var fallback = function () {
+      var box = $("copyBox");
+      box.hidden = false;
+      box.value = txt;
+      box.focus();
+      box.select();
+      flash("Select the text below and copy it.");
+    };
+    try {
+      var p = navigator.clipboard && navigator.clipboard.writeText(txt);
+      if (!p) { fallback(); return; }
+      p.then(function () { $("copyBox").hidden = true; flash("Copied. Paste it into a doc or an email."); }, fallback);
+    } catch (e) { fallback(); }
+  });
+  $("csvBtn").hidden = !topLevel;
+  $("printBtn").hidden = !topLevel;
+  $("csvBtn").addEventListener("click", function () {
+    var c = compute(state);
+    if (!c.valid || !c.dateOk) { flash("Fill in your numbers first."); return; }
+    var url = URL.createObjectURL(new Blob([planCSV(c)], { type: "text/csv;charset=utf-8" }));
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "campaign-plan.csv";
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(url); a.remove(); }, 1000);
+    flash("Spreadsheet downloaded.");
+  });
+  $("printBtn").addEventListener("click", function () { window.print(); });
+
+  if (CONFIG.supportEmail) {
+    var sup = $("support");
+    sup.hidden = false;
+    sup.innerHTML = 'Questions, refunds or trouble unlocking: email <span class="sel">' + esc(CONFIG.supportEmail) + "</span>. If the plan doesn't help, email within 7 days of purchase for a full refund.";
+  }
+
+  window.addEventListener("storage", function (ev) {
+    if (ev.key !== KEY_UNLOCK) return;
+    var v = parse(ev.newValue);
+    if (v && v.h === CONFIG.unlockHash) { unlocked = true; unlockCode = v.code || null; scheduleRender(); }
+  });
+
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) { vis[en.target.id === "calcForm" ? "form" : "result"] = en.isIntersecting; });
+      updatePeek();
+    });
+    io.observe($("calcForm"));
+    io.observe($("result"));
+  }
+
+  render();
+
+  // Arriving from Stripe: ?unlock=CODE (or #unlock-CODE)
+  var urlCode = null;
+  try { urlCode = new URLSearchParams(window.location.search).get("unlock"); } catch (e) {}
+  if (!urlCode && /^#unlock-[A-Za-z0-9-]+$/.test(window.location.hash)) urlCode = window.location.hash.slice(8);
+  if (urlCode) {
+    tryCode(urlCode).then(function (ok) {
+      try { window.history.replaceState(null, "", window.location.pathname + (ok ? "#plan" : "")); } catch (e) {}
+      if (ok) {
+        render();
+        $("plan").scrollIntoView({ block: "start" });
+      }
+    });
+  }
+})();
+</script>
+
+</body>
+</html>
