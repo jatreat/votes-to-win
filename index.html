@@ -549,8 +549,8 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
     sample = savedInputs.sample === true;
   }
   var unlocked = false, preview = false, unlockCode = null;
+  // A saved unlock is re-checked from its code at startup (see Start). The hash is public in this file, so it never unlocks on its own.
   var savedUnlock = parse(store.get(KEY_UNLOCK));
-  if (savedUnlock && savedUnlock.h === CONFIG.unlockHash) { unlocked = true; unlockCode = savedUnlock.code || null; }
   var setupMode = !CONFIG.paymentLink;
   var topLevel = (function () { try { return window.self === window.top; } catch (e) { return false; } })();
   var reduceMotion = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
@@ -972,14 +972,14 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
       return Array.prototype.map.call(new Uint8Array(buf), function (b) { return b.toString(16).padStart(2, "0"); }).join("");
     }).catch(function () { return null; });
   }
-  function tryCode(raw) {
+  function tryCode(raw, persist) {
     var code = String(raw || "").trim().toUpperCase().replace(/\s+/g, "");
     if (!code) return Promise.resolve(false);
     return sha256(code).then(function (h) {
       if (h && h === CONFIG.unlockHash) {
         unlocked = true;
         unlockCode = code;
-        store.set(KEY_UNLOCK, JSON.stringify({ h: h, code: code }));
+        if (persist !== false) store.set(KEY_UNLOCK, JSON.stringify({ h: h, code: code }));
         scheduleRender();
         return true;
       }
@@ -1032,11 +1032,14 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
   } else {
     $("buyBtn").href = CONFIG.paymentLink;
   }
-  $("previewBtn").addEventListener("click", function () {
-    preview = true;
-    render();
-    $("plan").scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
-  });
+  // Owner preview works only in a copy with live: false, so it can't be triggered from the console on the public site.
+  if (!CONFIG.live) {
+    $("previewBtn").addEventListener("click", function () {
+      preview = true;
+      render();
+      $("plan").scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+    });
+  }
   $("relockBtn").addEventListener("click", function () { preview = false; render(); });
 
   $("codeForm").addEventListener("submit", function (ev) {
@@ -1049,6 +1052,7 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
   });
 
   $("copyBtn").addEventListener("click", function () {
+    if (!(unlocked || preview)) return;
     var c = compute(state);
     if (!c.valid || !c.dateOk) { flash("Fill in your numbers first."); return; }
     var txt = planText(c);
@@ -1069,6 +1073,7 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
   $("csvBtn").hidden = !topLevel;
   $("printBtn").hidden = !topLevel;
   $("csvBtn").addEventListener("click", function () {
+    if (!(unlocked || preview)) return;
     var c = compute(state);
     if (!c.valid || !c.dateOk) { flash("Fill in your numbers first."); return; }
     var url = URL.createObjectURL(new Blob([planCSV(c)], { type: "text/csv;charset=utf-8" }));
@@ -1091,7 +1096,7 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
   window.addEventListener("storage", function (ev) {
     if (ev.key !== KEY_UNLOCK) return;
     var v = parse(ev.newValue);
-    if (v && v.h === CONFIG.unlockHash) { unlocked = true; unlockCode = v.code || null; scheduleRender(); }
+    if (v && v.code) tryCode(v.code, false);
   });
 
   if ("IntersectionObserver" in window) {
@@ -1104,6 +1109,9 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
   }
 
   render();
+
+  // Returning buyer: unlock only if the saved code itself still checks out
+  if (savedUnlock && savedUnlock.code) tryCode(savedUnlock.code, false);
 
   // Arriving from Stripe: ?unlock=CODE (or #unlock-CODE)
   var urlCode = null;
