@@ -14,6 +14,16 @@
 <meta property="og:description" content="Free win number calculator for candidates, plus a full campaign plan to reach it.">
 <meta property="og:image" content="https://jatreat.github.io/votes-to-win/og-image.png">
 <meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+[{"@context":"https://schema.org","@type":"WebApplication","name":"Votes to Win","url":"https://jatreat.github.io/votes-to-win/","applicationCategory":"BusinessApplication","operatingSystem":"Any","browserRequirements":"Requires JavaScript","description":"Free win number calculator for candidates and campaign managers, with a paid full campaign plan: weekly door and phone goals, a line-item budget, call time and a calendar to Election Day.","image":"https://jatreat.github.io/votes-to-win/og-image.png","offers":[{"@type":"Offer","name":"Win number calculator","price":"0","priceCurrency":"USD"},{"@type":"Offer","name":"Full campaign plan","price":"39","priceCurrency":"USD"}],"publisher":{"@type":"Organization","name":"Votes to Win","url":"https://jatreat.github.io/votes-to-win/"}},
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"What's a win number?","acceptedAnswer":{"@type":"Answer","text":"The number of votes you need to win, plus a cushion. Campaign managers set it before anything else, because door goals, the mail plan and the fundraising goal all work back from it."}},
+{"@type":"Question","name":"Where do I find my district's numbers?","acceptedAnswer":{"@type":"Answer","text":"Your county clerk or secretary of state posts registered voter counts and past results, usually as a PDF or spreadsheet. Look up the last race for the same office, or the last election of the same type."}},
+{"@type":"Question","name":"Which method should I use?","acceptedAnswer":{"@type":"Answer","text":"Use the last election when your race has a recent result to compare against. It's also the better method when voters pick more than one candidate, as in many council and school board races. Use turnout for a new district or when past results are hard to find."}},
+{"@type":"Question","name":"How are races with three or more candidates handled?","acceptedAnswer":{"@type":"Answer","text":"With two candidates you need half the ballots plus one. With more, the top vote-getter wins, so the calculator plans for 40% in a three-way race, 35% in a four-way race and 30% with five or more. If your state requires a majority, plan for half plus one."}},
+{"@type":"Question","name":"Why add a cushion?","acceptedAnswer":{"@type":"Answer","text":"Turnout surprises happen, and some voters skip races down the ballot. A cushion of about five percent protects you from a count that comes in light."}},
+{"@type":"Question","name":"How does the plan turn votes into doors?","acceptedAnswer":{"@type":"Answer","text":"It assumes you earn half your votes by talking to voters, and that half the voters you talk to back you. About one door in four answers, and a volunteer knocks about 15 doors an hour. You can change every assumption."}}]}]
+</script>
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
 </head>
 <body>
@@ -222,6 +232,17 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
 @media (min-width:820px){.faq-grid{grid-template-columns:1fr 1fr}}
 .faq h3{margin:0 0 6px;font-size:17px;line-height:1.3}
 .faq p{margin:0;color:var(--muted);max-width:62ch}
+/* guides */
+.guides{padding-block:20px 8px}
+.guides-h{margin:0 0 6px;font-family:var(--display);font-weight:900;font-size:clamp(32px,5vw,46px);line-height:1;text-transform:uppercase}
+.guides-lede{margin:0 0 18px;color:var(--muted);max-width:62ch}
+.guides-grid{display:grid;gap:12px}
+@media (min-width:700px){.guides-grid{grid-template-columns:1fr 1fr}}
+.guides a{display:block;padding:14px 16px;background:var(--sheet);border:2px solid var(--rule);text-decoration:none}
+.guides a:hover{background:var(--tint)}
+.guides b{display:block;font-family:var(--display);font-weight:800;font-size:22px;line-height:1.05;letter-spacing:.03em;text-transform:uppercase}
+.guides span{display:block;margin-top:4px;font-size:14.5px;color:var(--muted)}
+
 .foot{display:grid;gap:8px;margin-top:40px;padding-block:20px 40px;border-top:2px solid var(--rule);font-size:14px;color:var(--muted)}
 .foot p{margin:0;max-width:72ch}
 .sel{font-weight:600;color:var(--ink);user-select:all}
@@ -414,6 +435,20 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
       <div><h3>How are races with three or more candidates handled?</h3><p>With two candidates you need half the ballots plus one. With more, the top vote-getter wins, so the calculator plans for 40% in a three-way race, 35% in a four-way race and 30% with five or more. If your state requires a majority, plan for half plus one.</p></div>
       <div><h3>Why add a cushion?</h3><p>Turnout surprises happen, and some voters skip races down the ballot. A cushion of about five percent protects you from a count that comes in light.</p></div>
       <div><h3>How does the plan turn votes into doors?</h3><p>It assumes you earn half your votes by talking to voters, and that half the voters you talk to back you. About one door in four answers, and a volunteer knocks about 15 doors an hour. You can change every assumption.</p></div>
+    </div>
+  </section>
+
+  <section class="guides" id="guides" aria-labelledby="guidesTitle">
+    <h2 class="guides-h" id="guidesTitle">Campaign math guides</h2>
+    <p class="guides-lede">The math behind the calculator, worked through for a 9,000-voter town, a council ward and a vote-for-three school board race.</p>
+    <div class="guides-grid">
+      <a href="win-number/"><b>How to calculate your win number</b><span>The formula, a worked example, and where to find your district's numbers.</span></a>
+      <a href="doors-to-knock/"><b>How many doors do you need to knock?</b><span>Turn the win number into door knocks, volunteer hours and weekly shifts.</span></a>
+      <a href="campaign-budget/"><b>How much does a local campaign cost?</b><span>Mail, signs, literature and digital, line by line, with the cost per vote.</span></a>
+      <a href="call-time/"><b>How much call time does your campaign need?</b><span>From budget to donations to asks to hours on the phone.</span></a>
+      <a href="city-council/"><b>How many votes does it take to win a city council seat?</b><span>A ward of 4,200 voters, worked through.</span></a>
+      <a href="school-board/"><b>How many votes does it take to win a school board seat?</b><span>Why vote-for-three races need different math.</span></a>
+      <a href="campaign-plan/"><b>What goes in a campaign plan for a local race</b><span>The six parts and a 12-week timeline.</span></a>
     </div>
   </section>
 
