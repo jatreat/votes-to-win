@@ -231,8 +231,12 @@ export default {
         },
         body: JSON.stringify({
           model: env.MODEL || "claude-sonnet-5-5",
-          max_tokens: Math.max(400, Math.min(4000, Number(env.MAX_TOKENS) || 2600)),
+          max_tokens: Math.max(400, Math.min(4000, Number(env.MAX_TOKENS) || 3000)),
           stream: true,
+          // Sonnet 5.5 thinks before answering by default and can spend the whole output budget on it,
+          // leaving no memo. "between_tools" switches off the up-front thinking (there are no tools, so
+          // the reply is just the memo). THINKING="default" leaves the model's own behaviour alone.
+          ...(env.THINKING === "default" ? {} : { thinking: { type: env.THINKING || "between_tools" } }),
           system: SYSTEM_PROMPT,
           messages: [{ role: "user", content: userPrompt }],
         }),

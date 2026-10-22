@@ -22,7 +22,10 @@ ALLOWED_ORIGINS = "https://jatreat.github.io"
 UNLOCK_HASH = "bee9860864e053dd25040c9f9877550ced348796fa544f6c36ceaa5c15ce2dc4"
 # Claude model and the longest memo it may write (tokens).
 MODEL = "claude-sonnet-5-5"
-MAX_TOKENS = "2600"
+MAX_TOKENS = "3000"
+# Thinking: "between_tools" turns off Sonnet 5.5's up-front thinking so the budget goes to the memo.
+# "disabled" works on models that allow it; "default" sends no thinking setting at all.
+THINKING = "between_tools"
 
 # Per-visitor burst limit: at most 3 memos a minute from one IP address.
 [[unsafe.bindings]]
