@@ -1,7 +1,7 @@
 /**
  * Votes to Win: strategy-memo service.
  *
- * POST /memo  { code: "VTW-XXXXXX", plan: {...} }  ->  text/plain stream of the memo (Markdown)
+ * POST /memo  { code: "VTW-XXXXXX", plan: {...} }  ->  Claude's event stream (text/event-stream), passed through as is
  * GET  /      ->  { ok: true }
  *
  * The browser never sees the Claude API key: it lives here as a secret. The buyer's
@@ -159,43 +159,6 @@ function sanitizePlan(p) {
   };
 }
 
-/* Turn Claude's server-sent events into a plain text stream of the memo. */
-function sseToText() {
-  const dec = new TextDecoder();
-  const enc = new TextEncoder();
-  let buf = "";
-  const handle = (block, controller) => {
-    for (const line of block.split("\n")) {
-      if (!line.startsWith("data:")) continue;
-      let ev;
-      try {
-        ev = JSON.parse(line.slice(5).trim());
-      } catch {
-        continue;
-      }
-      if (ev.type === "content_block_delta" && ev.delta && ev.delta.type === "text_delta" && ev.delta.text) {
-        controller.enqueue(enc.encode(ev.delta.text));
-      } else if (ev.type === "error") {
-        const msg = (ev.error && ev.error.message) || "the service was interrupted";
-        controller.enqueue(enc.encode("\n\n*The memo stopped early: " + msg + ". Use the button to write it again.*\n"));
-      }
-    }
-  };
-  return new TransformStream({
-    transform(chunk, controller) {
-      buf += dec.decode(chunk, { stream: true });
-      let i;
-      while ((i = buf.indexOf("\n\n")) !== -1) {
-        handle(buf.slice(0, i), controller);
-        buf = buf.slice(i + 2);
-      }
-    },
-    flush(controller) {
-      if (buf.trim()) handle(buf, controller);
-    },
-  });
-}
-
 function upstreamMessage(status, text) {
   const t = String(text || "").toLowerCase();
   if (status === 401 || status === 403) return "The memo service's API key isn't valid. Email the address in the footer and it'll be fixed.";
@@ -285,11 +248,13 @@ export default {
       return json({ error: upstreamMessage(upstream.status, text) }, 502, cors.headers);
     }
 
-    return new Response(upstream.body.pipeThrough(sseToText()), {
+    // Claude's server-sent events go to the browser untouched. Parsing them here would cost
+    // CPU time per event, and the free plan allows 10 ms per request; the page parses instead.
+    return new Response(upstream.body, {
       status: 200,
       headers: {
         ...cors.headers,
-        "Content-Type": "text/plain; charset=utf-8",
+        "Content-Type": "text/event-stream; charset=utf-8",
         // no-transform + identity: don't let the edge gzip the stream, which would buffer it
         "Cache-Control": "no-store, no-transform",
         "Content-Encoding": "identity",

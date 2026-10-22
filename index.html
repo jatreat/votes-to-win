@@ -1034,12 +1034,33 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
         });
       }
       status.textContent = "Writing…";
-      if (!res.body || !res.body.getReader) return res.text().then(function (t) { memo.text = t; });
+      // The service relays Claude's server-sent events as is. Each "data:" line is JSON; the memo is the text deltas.
+      var buf = "";
+      var takeEvents = function (chunk, last) {
+        buf += chunk;
+        var blocks = buf.split("\n\n");
+        buf = last ? "" : blocks.pop();
+        if (last && !blocks[blocks.length - 1]) blocks.pop();
+        blocks.forEach(function (block) {
+          block.split("\n").forEach(function (ln) {
+            if (ln.indexOf("data:") !== 0) return;
+            var ev = parse(ln.slice(5).trim());
+            if (!ev) return;
+            if (ev.type === "content_block_delta" && ev.delta && ev.delta.type === "text_delta" && ev.delta.text) memo.text += ev.delta.text;
+            else if (ev.type === "error") memo.text += "\n\n*The memo stopped early: " + ((ev.error && ev.error.message) || "the service was interrupted") + ". Use the button to write it again.*\n";
+          });
+        });
+      };
+      var isSSE = /event-stream/.test(res.headers.get("Content-Type") || "");
+      if (!res.body || !res.body.getReader) {
+        return res.text().then(function (t) { if (isSSE) takeEvents(t, true); else memo.text = t; });
+      }
       var reader = res.body.getReader(), dec = new TextDecoder();
       var pump = function () {
         return reader.read().then(function (r) {
-          if (r.done) { memo.text += dec.decode(); return; }
-          memo.text += dec.decode(r.value, { stream: true });
+          if (r.done) { if (isSSE) takeEvents(dec.decode(), true); else memo.text += dec.decode(); return; }
+          var piece = dec.decode(r.value, { stream: true });
+          if (isSSE) takeEvents(piece, false); else memo.text += piece;
           scheduleRender();
           return pump();
         });
