@@ -1,0 +1,32 @@
+#:schema node_modules/wrangler/config-schema.json
+# Votes to Win: strategy-memo service.
+# A small Cloudflare Worker that holds the Claude API key and writes the
+# strategist's memo for buyers. The site itself stays static on GitHub Pages.
+#
+# Deploy from the Cloudflare dashboard (Workers & Pages > Create > Import a
+# repository, root directory "worker") or from this folder with `npx wrangler deploy`.
+# Then add the secret ANTHROPIC_API_KEY under Settings > Variables and Secrets.
+
+name = "votes-to-win-memo"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+workers_dev = true
+
+[observability]
+enabled = true
+
+[vars]
+# Browser origins allowed to call this service, comma-separated. No trailing slash.
+ALLOWED_ORIGINS = "https://jatreat.github.io"
+# SHA-256 of the buyer's unlock code. Same value as CONFIG.unlockHash in index.html.
+UNLOCK_HASH = "bee9860864e053dd25040c9f9877550ced348796fa544f6c36ceaa5c15ce2dc4"
+# Claude model and the longest memo it may write (tokens).
+MODEL = "claude-sonnet-5-5"
+MAX_TOKENS = "2600"
+
+# Per-visitor burst limit: at most 3 memos a minute from one IP address.
+[[unsafe.bindings]]
+name = "MEMO_LIMIT"
+type = "ratelimit"
+namespace_id = "1001"
+simple = { limit = 3, period = 60 }

@@ -1,0 +1,13 @@
+{
+  "name": "votes-to-win-memo",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Cloudflare Worker that writes the Votes to Win strategist's memo with the Claude API",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev"
+  },
+  "devDependencies": {
+    "wrangler": "^4"
+  }
+}

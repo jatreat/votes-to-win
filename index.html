@@ -204,6 +204,22 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
 .sched tr.gotv > *{background:var(--tint)}
 .sched tr.eday > *{padding-top:12px;border-bottom:0;font-family:var(--display);font-weight:900;font-size:21px;text-transform:uppercase;color:var(--red)}
 .sched tr.eday td{text-align:left}
+/* strategist's memo */
+.memo{border-bottom:0;padding-bottom:10px}
+.memo-out{margin-top:18px;max-width:68ch;font-size:16.5px;line-height:1.6}
+.memo-out h2{margin:26px 0 8px;font-family:var(--display);font-weight:800;font-size:23px;line-height:1.05;letter-spacing:.04em;text-transform:uppercase}
+.memo-out h2:first-child{margin-top:0}
+.memo-out h3{margin:18px 0 6px;font-size:16px;font-weight:700}
+.memo-out p{margin:0 0 12px}
+.memo-out ul,.memo-out ol{margin:0 0 12px;padding-left:24px}
+.memo-out li{margin:5px 0}
+.memo-out li::marker{color:var(--red);font-weight:700}
+.memo-out strong{font-weight:700}
+.memo-out.writing::after{content:"";display:inline-block;width:9px;height:17px;margin-left:3px;vertical-align:-3px;background:var(--red);animation:caret 1s steps(2) infinite}
+@keyframes caret{to{opacity:0}}
+.memo-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin-top:16px}
+.memo-actions .btn-cta[disabled]{opacity:.6;cursor:default;filter:none}
+.memo-actions .btn-cta.again{background:transparent;color:var(--ink);border:2px solid var(--rule);font-size:17px;padding:10px 16px}
 .export{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding-top:22px;border-top:2px solid var(--rule)}
 .flash{font-size:14px;font-weight:600;color:var(--muted)}
 #copyBox{display:block;width:100%;min-height:200px;margin-top:12px;padding:10px;border:2px solid var(--rule);border-radius:0;background:var(--sheet);font:13px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
@@ -256,7 +272,9 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
 
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
 @media print{
-  .top,.setup,.hero,.inputs,.faq,.peek,.export,.assume,.plan-head .grid-in,.lock,.r-actions,.sample-note,.stamp,.unlock-line,#copyBox{display:none!important}
+  .top,.setup,.hero,.inputs,.faq,.peek,.export,.assume,.plan-head .grid-in,.lock,.r-actions,.sample-note,.stamp,.unlock-line,.memo-actions,#copyBox{display:none!important}
+  .memo-out.writing::after{display:none}
+  .memo.empty{display:none!important}
   body{background:#fff;color:#000}
   .sheet{border:1px solid #000}
   .sheet::before{display:none}
@@ -384,6 +402,7 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
           <li><span class="o" aria-hidden="true"></span><span>The hours of call time it takes to raise that budget</span></li>
           <li><span class="o" aria-hidden="true"></span><span>A week-by-week calendar to Election Day, with mail drops and get-out-the-vote</span></li>
           <li><span class="o" aria-hidden="true"></span><span>Every assumption adjustable, and the plan copies into a doc or spreadsheet</span></li>
+          <li id="lockMemo" hidden><span class="o" aria-hidden="true"></span><span>A strategist's memo written for your numbers: where the race is won, how to run call time, what goes wrong</span></li>
         </ul>
         <a class="btn-cta full" id="buyBtn" href="#plan">Unlock the full plan · <span class="price">$39</span></a>
         <p class="fine">One-time payment through Stripe. No account. The plan unlocks on this device as soon as checkout finishes.</p>
@@ -416,6 +435,15 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
         <div class="assume-body" id="assumeBody"></div>
       </details>
       <div id="planOut"></div>
+      <div class="block memo" id="memoBlock" hidden>
+        <h3 class="sub">Strategist's memo</h3>
+        <p class="note">A campaign manager's read on your numbers: where this race is actually won, how to run call time, what to protect in the budget, and what tends to go wrong. Written for this plan, in about a minute.</p>
+        <div class="memo-out" id="memoOut" hidden></div>
+        <div class="memo-actions">
+          <button type="button" class="btn-cta" id="memoBtn">Write my strategist's memo</button>
+          <span class="flash" id="memoStatus" role="status" aria-live="polite"></span>
+        </div>
+      </div>
       <div class="export">
         <button type="button" class="btn-line" id="copyBtn">Copy the plan</button>
         <button type="button" class="btn-line" id="csvBtn" hidden>Download spreadsheet (CSV)</button>
@@ -477,12 +505,16 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
     unlockHash: "bee9860864e053dd25040c9f9877550ced348796fa544f6c36ceaa5c15ce2dc4",
     // Shown in the footer when set
     supportEmail: "josh@JoshTreat.com",
+    // The strategist's memo service (a Cloudflare Worker, see worker/). Empty = no memo section.
+    // Paste the Worker's URL here, e.g. "https://votes-to-win-memo.YOUR-SUBDOMAIN.workers.dev"
+    memoApi: "",
     // true on the public site: hides the owner's setup banner and preview button
     live: true
   };
 
   var KEY_INPUTS = "vtw:inputs:v1";
   var KEY_UNLOCK = "vtw:unlock:v1";
+  var KEY_MEMO = "vtw:memo:v1";
   var DAY = 864e5;
   var TYPES = { pres: 66, mid: 50, local: 22, primary: 20 };
   var PLURALITY = { 3: 0.40, 4: 0.35, 5: 0.30 };
@@ -588,6 +620,14 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
   // A saved unlock is re-checked from its code at startup (see Start). The hash is public in this file, so it never unlocks on its own.
   var savedUnlock = parse(store.get(KEY_UNLOCK));
   var setupMode = !CONFIG.paymentLink;
+  var memoOn = !!CONFIG.memoApi;
+  // The memo written for this device: its text, a key of the numbers it was written for, and whether one is being written now
+  var memo = { text: "", key: "", busy: false, shown: null };
+  var savedMemo = parse(store.get(KEY_MEMO));
+  if (savedMemo && typeof savedMemo.text === "string" && savedMemo.text.trim() && typeof savedMemo.key === "string") {
+    memo.text = savedMemo.text;
+    memo.key = savedMemo.key;
+  }
   var topLevel = (function () { try { return window.self === window.top; } catch (e) { return false; } })();
   var reduceMotion = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
 
@@ -831,7 +871,9 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
       L.push(r.label + ": " + fmt(r.doors) + " doors, " + fmt(r.dials) + " calls, " + fmt(r.shifts) + " shifts");
       r.ms.forEach(function (x) { L.push("   - " + x); });
     });
-    L.push(longDate(c.eday) + ": ELECTION DAY", "", "Made with Votes to Win");
+    L.push(longDate(c.eday) + ": ELECTION DAY");
+    if (memoCurrent(c)) L.push("", "STRATEGIST'S MEMO", "", memoText());
+    L.push("", "Made with Votes to Win");
     return L.join("\n");
   }
 
@@ -843,6 +885,175 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
     budgetLines(c, function (v) { return v; }).forEach(function (r) { out.push([r[0], r[1], Math.round(r[2])].map(q).join(",")); });
     out.push(["Total", "", Math.round(c.total)].map(q).join(","));
     return out.join("\r\n");
+  }
+
+  /* ===== Strategist's memo ===== */
+  // The plan as plain data for the memo service. Numbers only; the service writes the judgment.
+  function planFacts(c) {
+    var t = today();
+    var r2 = function (v) { return Math.round(v * 100) / 100; };
+    return {
+      candidate: String(state.name || "").slice(0, 80),
+      office: String(state.office || "").slice(0, 120),
+      today: iso(t),
+      electionDay: iso(c.eday),
+      daysToElection: daysBetween(t, c.eday),
+      weeksOfKnocking: c.N,
+      earlyVotingWeeksBefore: clamp(Math.round(num(state.early, 4)), 0, 8),
+      method: state.method,
+      registeredVoters: state.method === "past" ? null : num(state.registered, 0),
+      expectedTurnoutPct: state.method === "past" ? null : num(state.turnout, 0),
+      candidatesInRace: state.method === "past" ? null : clamp(Math.round(num(state.cands, 2)), 2, 5),
+      lastWinnerVotes: state.method === "past" ? num(state.pastWinner, 0) : null,
+      lastBallotsCast: state.method === "past" ? num(state.pastBallots, 0) : null,
+      turnoutChangePct: state.method === "past" ? num(state.change, 0) : null,
+      expectedBallots: c.projected,
+      bareMinimum: c.base,
+      cushionPct: num(state.cushion, 0),
+      winNumber: c.win,
+      shareOfBallotsPct: r2(c.share * 100),
+      voterContact: {
+        conversations: c.conversations, doorKnocks: c.knocks, phoneCalls: c.dials, volunteerShifts: c.shifts, hoursPerShift: c.shift,
+        perWeek: { doors: Math.round(c.knocksWk), calls: Math.round(c.dialsWk), shifts: r2(c.shiftsWk) },
+        assumptions: {
+          votesFromDirectContactPct: num(state.direct, 50), supportRatePct: num(state.support, 50), doorSharePct: num(state.doorShare, 70),
+          doorAnswerRatePct: num(state.doorRate, 25), doorsPerHour: num(state.dph, 15), callReachRatePct: num(state.phoneRate, 10), callsPerHour: num(state.cph, 30)
+        }
+      },
+      budget: {
+        lines: budgetLines(c, function (v) { return v; }).map(function (r) { return { item: r[0], detail: r[1], amount: Math.round(r[2]) }; }),
+        total: Math.round(c.total), costPerVote: r2(c.perVote), contingencyPct: c.cont
+      },
+      fundraising: {
+        goal: Math.round(c.goal), selfFunding: Math.round(c.self), averageGift: c.gift, giftsNeeded: c.gifts, asksNeeded: c.asks, yesRatePct: c.yesPct,
+        peopleReachedPerCallHour: num(state.reach, 6), callHoursTotal: Math.ceil(c.callHours), callHoursPerWeek: r2(c.callWk),
+        callTimeStart: c.fundLate ? iso(t) : iso(c.fundStart), moneyDeadline: iso(c.fundEnd), moneyDeadlinePassed: !!c.fundLate
+      },
+      beforeYouKnockWindow: c.foundTo,
+      beforeYouKnock: c.found,
+      weekByWeek: c.rows.map(function (r) { return { week: r.label, weeksOut: r.k, doors: r.doors, calls: r.dials, shifts: r.shifts, milestones: r.ms }; })
+    };
+  }
+  // Changes when the plan's substance changes, so a memo can be flagged as written for older numbers
+  function memoKey(c) {
+    return [state.name, state.office, iso(c.eday), c.N, c.win, c.projected, c.knocks, c.dials, c.shifts, Math.round(c.total), Math.round(c.goal), c.pieces, Math.round(c.callHours)].join("|");
+  }
+  // Markdown from the memo service to HTML. Text is escaped first; only headings, lists, paragraphs, bold and italics are allowed through.
+  function mdToHTML(md) {
+    var out = [], para = [], list = null;
+    function inline(s) {
+      s = esc(s);
+      s = s.replace(/\*\*([^*]+?)\*\*/g, "<strong>$1</strong>");
+      s = s.replace(/(^|[^*\w])\*([^*\s][^*]*?)\*(?=[^*\w]|$)/g, "$1<em>$2</em>");
+      return s;
+    }
+    function endPara() { if (para.length) { out.push("<p>" + inline(para.join(" ")) + "</p>"); para = []; } }
+    function endList() { if (list) { out.push("</" + list + ">"); list = null; } }
+    String(md).replace(/\r/g, "").split("\n").forEach(function (ln) {
+      var m;
+      if ((m = /^\s{0,3}(#{1,6})\s+(.+?)\s*#*\s*$/.exec(ln))) {
+        endPara(); endList();
+        var lvl = m[1].length <= 2 ? 2 : 3;
+        out.push("<h" + lvl + ">" + inline(m[2]) + "</h" + lvl + ">");
+      } else if ((m = /^\s*[-*•]\s+(.+)$/.exec(ln))) {
+        endPara();
+        if (list !== "ul") { endList(); list = "ul"; out.push("<ul>"); }
+        out.push("<li>" + inline(m[1]) + "</li>");
+      } else if ((m = /^\s*\d{1,2}[.)]\s+(.+)$/.exec(ln))) {
+        endPara();
+        if (list !== "ol") { endList(); list = "ol"; out.push("<ol>"); }
+        out.push("<li>" + inline(m[1]) + "</li>");
+      } else if (!ln.trim()) {
+        endPara(); endList();
+      } else if (list && /^\s{2,}/.test(ln)) {
+        out[out.length - 1] = out[out.length - 1].replace(/<\/li>$/, " " + inline(ln.trim()) + "</li>");
+      } else {
+        endList();
+        para.push(ln.trim());
+      }
+    });
+    endPara(); endList();
+    return out.join("");
+  }
+  // The memo as plain text, for Copy
+  function memoText() {
+    return String(memo.text).replace(/\r/g, "").split("\n").map(function (ln) {
+      ln = ln.replace(/^\s{0,3}#{1,6}\s+(.+?)\s*#*\s*$/, function (_, h) { return h.toUpperCase(); });
+      return ln.replace(/\*\*([^*]+?)\*\*/g, "$1").replace(/(^|[^*\w])\*([^*\s][^*]*?)\*(?=[^*\w]|$)/g, "$1$2").replace(/^\s*[-*•]\s+/, "- ");
+    }).join("\n").replace(/\n{3,}/g, "\n\n").trim();
+  }
+  function memoCurrent(c) { return !!memo.text && !memo.busy && memo.key === memoKey(c); }
+
+  function renderMemo(c) {
+    var block = $("memoBlock");
+    var open = unlocked || preview;
+    if (!memoOn || !open || !c.valid || !c.dateOk) { block.hidden = true; return; }
+    block.hidden = false;
+    var out = $("memoOut"), btn = $("memoBtn"), status = $("memoStatus");
+    var has = !!memo.text;
+    block.classList.toggle("empty", !has);
+    out.hidden = !has;
+    if (has && memo.shown !== memo.text) { out.innerHTML = mdToHTML(memo.text); memo.shown = memo.text; }
+    out.classList.toggle("writing", memo.busy);
+    btn.disabled = memo.busy;
+    btn.classList.toggle("again", has && !memo.busy);
+    if (memo.busy) btn.textContent = "Writing…";
+    else if (!has) btn.textContent = "Write my strategist's memo";
+    else if (memo.key !== memoKey(c)) { btn.textContent = "Rewrite it for these numbers"; if (!status.dataset.error) status.textContent = "Your numbers changed after this memo was written."; }
+    else { btn.textContent = "Write it again"; if (!status.dataset.error) status.textContent = ""; }
+  }
+
+  function writeMemo() {
+    if (memo.busy || !memoOn || !(unlocked || preview)) return;
+    var c = compute(state);
+    var status = $("memoStatus");
+    delete status.dataset.error;
+    if (!c.valid || !c.dateOk) { status.textContent = "Fill in your numbers first."; return; }
+    var prev = { text: memo.text, key: memo.key };
+    memo = { text: "", key: memoKey(c), busy: true, shown: null };
+    status.textContent = "Reading your plan…";
+    render();
+    var fail = function (msg) {
+      memo = { text: prev.text, key: prev.key, busy: false, shown: null };
+      status.dataset.error = "1";
+      status.textContent = msg;
+      render();
+    };
+    var req;
+    try {
+      req = fetch(String(CONFIG.memoApi).replace(/\/+$/, "") + "/memo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: unlockCode || "", plan: planFacts(c) })
+      });
+    } catch (e) { fail("Couldn't reach the memo service."); return; }
+    req.then(function (res) {
+      if (!res.ok) {
+        return res.json().catch(function () { return {}; }).then(function (j) {
+          throw new Error(j && j.error ? j.error : "The memo service isn't available right now (" + res.status + ").");
+        });
+      }
+      status.textContent = "Writing…";
+      if (!res.body || !res.body.getReader) return res.text().then(function (t) { memo.text = t; });
+      var reader = res.body.getReader(), dec = new TextDecoder();
+      var pump = function () {
+        return reader.read().then(function (r) {
+          if (r.done) { memo.text += dec.decode(); return; }
+          memo.text += dec.decode(r.value, { stream: true });
+          scheduleRender();
+          return pump();
+        });
+      };
+      return pump();
+    }).then(function () {
+      if (!memo.text.trim()) throw new Error("Nothing came back. Try again in a minute.");
+      memo.busy = false;
+      store.set(KEY_MEMO, JSON.stringify({ text: memo.text, key: memo.key }));
+      status.textContent = "";
+      render();
+    }).catch(function (e) {
+      fail(e && e.message ? e.message : "Couldn't reach the memo service. Check your connection and try again.");
+    });
   }
 
   /* ===== Rendering ===== */
@@ -924,6 +1135,7 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
     var c = compute(state);
     renderCalc(c);
     renderPlan(c);
+    renderMemo(c);
   }
   function scheduleRender() {
     if (pending) return;
@@ -1077,6 +1289,8 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
     });
   }
   $("relockBtn").addEventListener("click", function () { preview = false; render(); });
+  $("lockMemo").hidden = !memoOn;
+  $("memoBtn").addEventListener("click", writeMemo);
 
   $("codeForm").addEventListener("submit", function (ev) {
     ev.preventDefault();
