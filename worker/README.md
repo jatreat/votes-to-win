@@ -23,7 +23,7 @@ What keeps the API credit safe:
    Save and deploy. It redeploys on every push to `main`.
 4. **Add the secret.** On the Worker, Settings > Variables and Secrets > Add > type Secret, name `ANTHROPIC_API_KEY`, paste the key. Save. (The other settings are already in `wrangler.toml`.)
 5. **Check it.** Open the Worker's URL (`https://votes-to-win-memo.<your-subdomain>.workers.dev`). It should answer `{"ok":true,...}`.
-6. **Turn the memo on.** In `index.html`, set `CONFIG.memoApi` to that URL (no trailing slash) and push. The memo section appears for buyers; nothing changes for anyone else.
+6. **Turn the memo on.** In `index.html`, set `CONFIG.memoApi` to that URL (no trailing slash) and push. The memo section appears for buyers; nothing changes for anyone else. `CONFIG.memoFrom` is an optional launch moment (ISO 8601, UTC): until then the section stays hidden even with `memoApi` set.
 
 To turn it off, set `memoApi` back to `""`.
 

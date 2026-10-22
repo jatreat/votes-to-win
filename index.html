@@ -506,8 +506,9 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
     // Shown in the footer when set
     supportEmail: "josh@JoshTreat.com",
     // The strategist's memo service (a Cloudflare Worker, see worker/). Empty = no memo section.
-    // Paste the Worker's URL here, e.g. "https://votes-to-win-memo.YOUR-SUBDOMAIN.workers.dev"
-    memoApi: "",
+    memoApi: "https://votes-to-win-memo.jatreat.workers.dev",
+    // The memo switches on at this moment (ISO 8601, UTC). Empty = on as soon as memoApi is set.
+    memoFrom: "2026-11-12T16:00:00Z",
     // true on the public site: hides the owner's setup banner and preview button
     live: true
   };
@@ -620,7 +621,8 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
   // A saved unlock is re-checked from its code at startup (see Start). The hash is public in this file, so it never unlocks on its own.
   var savedUnlock = parse(store.get(KEY_UNLOCK));
   var setupMode = !CONFIG.paymentLink;
-  var memoOn = !!CONFIG.memoApi;
+  var memoFrom = CONFIG.memoFrom ? Date.parse(CONFIG.memoFrom) : 0;
+  var memoOn = !!CONFIG.memoApi && (!memoFrom || isNaN(memoFrom) || Date.now() >= memoFrom);
   // The memo written for this device: its text, a key of the numbers it was written for, and whether one is being written now
   var memo = { text: "", key: "", busy: false, shown: null };
   var savedMemo = parse(store.get(KEY_MEMO));
