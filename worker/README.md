@@ -1,6 +1,8 @@
 # Votes to Win memo service
 
-A Cloudflare Worker (free plan is plenty) that writes the strategist's memo for buyers with the Claude API. The browser sends the plan's numbers and the buyer's unlock code here; the Worker checks the code, asks Claude for the memo, and streams it back as plain text. The API key never leaves the Worker.
+A Cloudflare Worker (free plan is plenty) that writes the strategist's memo for buyers with the Claude API. The browser sends the plan's numbers and the buyer's unlock code here; the Worker checks the code, asks Claude for the memo, and relays Claude's event stream back untouched (the page turns it into text). The API key never leaves the Worker.
+
+Why the Worker doesn't parse the stream itself: the free plan allows 10 ms of CPU per request, and parsing a thousand streamed events in the Worker used about 40 ms, which got memos cut off mid-sentence. Passing the body through costs almost nothing.
 
 What keeps the API credit safe:
 
