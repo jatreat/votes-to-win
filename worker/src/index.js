@@ -212,10 +212,7 @@ export default {
 
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors.headers });
     if (request.method === "GET" && (url.pathname === "/" || url.pathname === "/health")) {
-      // Temporary setup diagnostic: the key's shape only (standard prefix, length, stray whitespace), never the key.
-      const k = String(env.ANTHROPIC_API_KEY || "");
-      const keyShape = { set: !!k, prefix: k.slice(0, 12), length: k.length, whitespace: /\s/.test(k) };
-      return json({ ok: true, service: "votes-to-win-memo", keyShape }, 200, cors.headers);
+      return json({ ok: true, service: "votes-to-win-memo" }, 200, cors.headers);
     }
     if (request.method !== "POST" || url.pathname !== "/memo") return json({ error: "Not found" }, 404, cors.headers);
     if (!cors.ok) return json({ error: "This service only answers the Votes to Win site." }, 403, cors.headers);
